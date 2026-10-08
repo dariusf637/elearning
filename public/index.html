@@ -20,8 +20,8 @@
   #navbar button:hover { border-color: #e94560; color: #e94560; }
 
   #main { flex: 1; overflow: hidden; position: relative; }
-  .view { position: absolute; inset: 0; overflow-y: auto; }
-  .view.hidden { display: none; }
+  .view { position: absolute; inset: 0; overflow-y: auto; display: none; }
+  .view.active { display: block; }
   .page-container { padding: 30px 40px; max-width: 1200px; margin: 0 auto; }
   .page-container h1 { font-size: 26px; margin-bottom: 24px; }
   .page-container h2 { font-size: 16px; color: #ccc; margin: 30px 0 14px; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
@@ -35,6 +35,7 @@
   .card .card-bar > div { height: 100%; background: #4ade80; transition: width 0.3s; }
   .card .card-percent { font-size: 11px; color: #4ade80; font-weight: 600; }
   .card .card-play { position: absolute; top: 12px; right: 12px; background: #e94560; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .card .card-play.done { background: #4ade80; color: #000; }
 
   .course-layout { display: flex; height: 100%; }
   .course-sidebar { width: 380px; background: #1a1a2e; display: flex; flex-direction: column; border-right: 1px solid #222; flex-shrink: 0; }
@@ -69,7 +70,8 @@
   #subtitle-menu .item.selected { background: #e94560; color: #fff; }
   #subtitle-menu .header { padding: 6px 12px; font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
 
-  #view-login { display: flex; align-items: center; justify-content: center; }
+  #view-login { display: none; align-items: center; justify-content: center; }
+  #view-login.active { display: flex; }
   .login-box { background: #1a1a2e; padding: 30px; border-radius: 10px; width: 340px; border: 1px solid #333; }
   .login-box h2 { color: #e94560; margin-bottom: 20px; text-align: center; font-size: 20px; }
   .login-box input { width: 100%; padding: 11px; margin: 6px 0; background: #0f0f1a; border: 1px solid #333; border-radius: 4px; color: #fff; font-size: 14px; }
@@ -102,6 +104,7 @@
   <div class="nav-links">
     <a href="#/home" data-nav="home">Accueil</a>
     <a href="#/courses" data-nav="courses">Tous les cours</a>
+    <a href="#/in-progress" data-nav="in-progress">En cours</a>
     <a href="#/admin" data-nav="admin" id="nav-admin" style="display:none">Admin</a>
   </div>
   <div class="nav-user">
@@ -112,7 +115,7 @@
 
 <main id="main">
 
-  <div id="view-login" class="view hidden">
+  <div id="view-login" class="view">
     <div class="login-box">
       <h2>📚 Ma Plateforme</h2>
       <input type="text" id="login-username" placeholder="Nom d'utilisateur" autocomplete="off">
@@ -122,12 +125,16 @@
     </div>
   </div>
 
-  <div id="view-home" class="view hidden">
+  <div id="view-home" class="view">
     <div class="page-container">
       <h1>Bonjour <span id="home-username"></span></h1>
-      <section id="home-resume-section" style="display:none;">
+      <section id="home-resume-section">
         <h2>▶ Reprendre</h2>
         <div id="home-resume-grid" class="card-grid"></div>
+      </section>
+      <section id="home-completed-section">
+        <h2>✅ Cours terminés</h2>
+        <div id="home-completed-grid" class="card-grid"></div>
       </section>
       <section>
         <h2>📚 Mes cours</h2>
@@ -136,14 +143,28 @@
     </div>
   </div>
 
-  <div id="view-courses" class="view hidden">
+  <div id="view-courses" class="view">
     <div class="page-container">
       <h1>Tous les cours</h1>
-      <div id="courses-grid" class="card-grid"></div>
+      <section id="courses-completed-section">
+        <h2>✅ Cours terminés</h2>
+        <div id="courses-completed-grid" class="card-grid"></div>
+      </section>
+      <section>
+        <h2>📚 Tous les cours</h2>
+        <div id="courses-grid" class="card-grid"></div>
+      </section>
     </div>
   </div>
 
-  <div id="view-course" class="view hidden">
+  <div id="view-in-progress" class="view">
+    <div class="page-container">
+      <h1>▶ Cours en cours</h1>
+      <div id="in-progress-grid" class="card-grid"></div>
+    </div>
+  </div>
+
+  <div id="view-course" class="view">
     <div class="course-layout">
       <aside class="course-sidebar">
         <div class="course-header">
@@ -161,6 +182,7 @@
           <span class="info-text" id="info-text">Sélectionnez une leçon</span>
           <div class="info-actions">
             <button class="btn" id="subtitle-btn" style="display:none;">💬 Sous-titres</button>
+            <button class="btn" id="complete-btn" style="display:none;">✅ Marquer terminé</button>
             <button class="btn" id="archive-btn" style="display:none;">Archiver</button>
           </div>
           <div id="subtitle-menu"></div>
@@ -169,7 +191,7 @@
     </div>
   </div>
 
-  <div id="view-admin" class="view hidden">
+  <div id="view-admin" class="view">
     <div class="page-container">
       <h1>⚙️ Administration</h1>
       <section>
@@ -217,21 +239,36 @@ let currentSubtitles = [];
 let currentVideoPath = null;
 let saveTimer = null;
 let currentArchived = false;
+let currentCompleted = false;
 let currentCoursePath = null;
 
 const player = document.getElementById('player');
 const subtitleBtn = document.getElementById('subtitle-btn');
 const subtitleMenu = document.getElementById('subtitle-menu');
 const archiveBtn = document.getElementById('archive-btn');
+const completeBtn = document.getElementById('complete-btn');
 const infoText = document.getElementById('info-text');
 const resumeToast = document.getElementById('resume-toast');
 
 function navigate(hash) { window.location.hash = hash; }
 
+function showView(name) {
+  // Cacher toutes les vues avec style.display direct
+  document.querySelectorAll('.view').forEach(v => {
+    v.classList.remove('active');
+    v.style.display = 'none';
+  });
+  // Afficher la vue demandée
+  const view = document.getElementById('view-' + name);
+  view.classList.add('active');
+  view.style.display = (name === 'login') ? 'flex' : 'block';
+  // Gérer l'arrêt du lecteur si on quitte la vue cours
+  if (name !== 'course') { stopPlayer(); }
+}
+
 function router() {
   const hash = window.location.hash || '#/home';
   if (!token) { showView('login'); return; }
-  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
   document.querySelectorAll('#navbar .nav-links a').forEach(a => a.classList.remove('active'));
 
   if (hash.startsWith('#/course/')) {
@@ -244,7 +281,12 @@ function router() {
   } else if (hash.startsWith('#/courses')) {
     showView('courses');
     document.querySelector('[data-nav="courses"]').classList.add('active');
+    loadCompleted('courses-completed-grid', 'courses-completed-section');
     loadCoursesGrid('courses-grid');
+  } else if (hash.startsWith('#/in-progress')) {
+    showView('in-progress');
+    document.querySelector('[data-nav="in-progress"]').classList.add('active');
+    loadInProgress();
   } else if (hash.startsWith('#/admin')) {
     if (userRole !== 'admin') { navigate('#/home'); return; }
     showView('admin');
@@ -255,12 +297,6 @@ function router() {
     document.querySelector('[data-nav="home"]').classList.add('active');
     loadHome();
   }
-}
-
-function showView(name) {
-  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-  document.getElementById('view-' + name).classList.remove('hidden');
-  if (name !== 'course') { stopPlayer(); }
 }
 
 window.addEventListener('hashchange', router);
@@ -293,7 +329,11 @@ async function doLogin() {
     localStorage.setItem('username', username);
     localStorage.setItem('userRole', userRole);
     setupNavbar();
-    router();
+    if (!window.location.hash || window.location.hash === '#' || window.location.hash === '#/') {
+      navigate('#/home');
+    } else {
+      router();
+    }
   } catch { err.textContent = 'Erreur réseau'; }
 }
 
@@ -316,20 +356,93 @@ function setupNavbar() {
 }
 
 async function loadHome() {
+  // Reprendre
   try {
     const r = await fetch('/api/resume', { headers: { Authorization: 'Bearer ' + token } });
     const resume = await r.json();
     const grid = document.getElementById('home-resume-grid');
-    const section = document.getElementById('home-resume-section');
     grid.innerHTML = '';
-    if (resume.length > 0) {
-      section.style.display = 'block';
-      resume.forEach(v => grid.appendChild(renderResumeCard(v)));
+    if (resume.length === 0) {
+      grid.innerHTML = '<div class="empty">Aucun cours en cours. Lancez une vidéo pour la voir ici.</div>';
     } else {
-      section.style.display = 'none';
+      resume.forEach(v => grid.appendChild(renderResumeCard(v)));
     }
-  } catch {}
+  } catch {
+    document.getElementById('home-resume-grid').innerHTML = '<div class="empty">Erreur de chargement</div>';
+  }
+
+  await loadCompleted('home-completed-grid');
   loadCoursesGrid('home-courses-grid');
+}
+
+async function loadCompleted(gridId) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  try {
+    const r = await fetch('/api/completed', { headers: { Authorization: 'Bearer ' + token } });
+    const rows = await r.json();
+    grid.innerHTML = '';
+    if (rows.length === 0) {
+      grid.innerHTML = '<div class="empty">Aucun cours terminé. Marquez une vidéo comme terminée pour la voir ici.</div>';
+      return;
+    }
+    rows.forEach(v => grid.appendChild(renderCompletedCard(v)));
+  } catch {
+    grid.innerHTML = '<div class="empty">Erreur de chargement</div>';
+  }
+}
+
+async function loadInProgress() {
+  const grid = document.getElementById('in-progress-grid');
+  grid.innerHTML = '<div class="empty">Chargement…</div>';
+  try {
+    const r = await fetch('/api/in-progress', { headers: { Authorization: 'Bearer ' + token } });
+    const rows = await r.json();
+    grid.innerHTML = '';
+    if (rows.length === 0) {
+      grid.innerHTML = '<div class="empty">Aucun cours en cours.</div>';
+      return;
+    }
+    rows.forEach(v => grid.appendChild(renderProgressCard(v)));
+  } catch {
+    grid.innerHTML = '<div class="empty">Erreur de chargement</div>';
+  }
+}
+
+function renderProgressCard(v) {
+  const filename = v.video_path.split('/').pop();
+  const courseName = v.video_path.split('/')[0];
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.innerHTML = `
+    <div class="card-play">▶</div>
+    <div class="card-title">${escapeHtml(filename)}</div>
+    <div class="card-meta">${escapeHtml(courseName)}</div>
+    <div class="card-bar"><div style="width:${v.percent}%"></div></div>
+    <div class="card-percent">${v.percent}% · ${formatTime(v.position)} / ${formatTime(v.duration)}</div>
+  `;
+  el.onclick = () => {
+    navigate('#/course/' + encodeURIComponent(v.video_path.split('/')[0]) + '?play=' + encodeURIComponent(v.video_path));
+  };
+  return el;
+}
+
+function renderCompletedCard(v) {
+  const filename = v.video_path.split('/').pop();
+  const courseName = v.video_path.split('/')[0];
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.innerHTML = `
+    <div class="card-play done">✓</div>
+    <div class="card-title">${escapeHtml(filename)}</div>
+    <div class="card-meta">${escapeHtml(courseName)}</div>
+    <div class="card-bar"><div style="width:100%;background:#4ade80;"></div></div>
+    <div class="card-percent">100% · Terminé</div>
+  `;
+  el.onclick = () => {
+    navigate('#/course/' + encodeURIComponent(v.video_path.split('/')[0]) + '?play=' + encodeURIComponent(v.video_path));
+  };
+  return el;
 }
 
 function renderResumeCard(v) {
@@ -445,10 +558,11 @@ async function playVideo(item) {
   infoText.textContent = '⏳ Chargement…';
   resumeToast.style.display = 'none';
   archiveBtn.style.display = 'none';
+  completeBtn.style.display = 'none';
   subtitleBtn.style.display = 'none';
   subtitleMenu.classList.remove('open');
 
-  let progress = { position: 0, duration: 0, archived: 0 };
+  let progress = { position: 0, duration: 0, archived: 0, completed: 0 };
   try {
     const r = await fetch('/api/progress/' + encodeURIComponent(videoPath), {
       headers: { Authorization: 'Bearer ' + token }
@@ -456,6 +570,7 @@ async function playVideo(item) {
     progress = await r.json();
   } catch {}
   currentArchived = !!progress.archived;
+  currentCompleted = !!progress.completed;
 
   player.querySelectorAll('track').forEach(t => t.remove());
   player.removeAttribute('src');
@@ -475,7 +590,7 @@ async function playVideo(item) {
   player.load();
 
   player.onloadedmetadata = () => {
-    if (progress.position > 5 && progress.position < player.duration - 5) {
+    if (progress.position > 5 && progress.position < player.duration - 5 && !currentCompleted) {
       player.currentTime = progress.position;
       resumeToast.textContent = '⏪ Reprise à ' + formatTime(progress.position);
       resumeToast.style.display = 'block';
@@ -483,7 +598,9 @@ async function playVideo(item) {
     }
     infoText.textContent = displayName + ' — ' + formatTime(player.duration);
     archiveBtn.style.display = 'inline-block';
+    completeBtn.style.display = 'inline-block';
     updateArchiveBtn();
+    updateCompleteBtn();
 
     if (currentSubtitles.length > 0) {
       subtitleBtn.style.display = 'inline-block';
@@ -578,6 +695,31 @@ function updateArchiveBtn() {
     currentArchived = !currentArchived;
     updateArchiveBtn();
   };
+}
+
+function updateCompleteBtn() {
+  completeBtn.textContent = currentCompleted ? '↺ Non terminé' : '✅ Marquer terminé';
+  completeBtn.style.background = currentCompleted ? '#4ade80' : '';
+  completeBtn.style.color = currentCompleted ? '#000' : '';
+  completeBtn.onclick = async () => {
+    await markCompleted(currentVideo, !currentCompleted);
+    currentCompleted = !currentCompleted;
+    updateCompleteBtn();
+  };
+}
+
+async function markCompleted(videoPath, completed) {
+  if (!player.duration) return;
+  const position = completed ? player.duration : 0;
+  await fetch('/api/progress', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify({
+      video_path: videoPath,
+      position: position,
+      duration: player.duration
+    })
+  });
 }
 
 async function toggleArchive(videoPath, archive) {
@@ -708,6 +850,7 @@ function escapeHtml(s) {
 
 function cssEscape(s) { return s.replace(/["\\]/g, '\\$&'); }
 
+// Démarrage
 if (token) {
   setupNavbar();
   router();
