@@ -19,7 +19,10 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     username TEXT UNIQUE,
-    password TEXT
+    password TEXT,
+    role TEXT DEFAULT 'user',
+    created_at INTEGER,
+    created_by INTEGER
   );
   CREATE TABLE IF NOT EXISTS progress (
     user_id INTEGER,
@@ -35,28 +38,27 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_progress_user ON progress(user_id);
 `);
 
-// ============ AUTHENTIFICATION ============
-app.post('/api/register', async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'Champs manquants' });
-  try {
-    const hash = await bcrypt.hash(password, 10);
-    const info = db.prepare('INSERT INTO users (username, password) VALUES (?, ?)').run(username, hash);
-    const token = jwt.sign({ id: info.lastInsertRowid, username }, JWT_SECRET);
-    res.json({ token, username });
-  } catch (e) {
-    res.status(400).json({ error: 'Utilisateur existe déjà' });
-  }
-});
+// Migration : ajouter les colonnes role/created_at/created_by si elles manquent
+try {
+  const cols = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
+  if (!cols.includes('role')) db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
+  if (!cols.includes('created_at')) db.exec("ALTER TABLE users ADD COLUMN created_at INTEGER");
+  if (!cols.includes('created_by')) db.exec("ALTER TABLE users ADD COLUMN created_by INTEGER");
+} catch (e) { console.error('Migration:', e.message); }
 
+// ============ AUTHENTIFICATION ============
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'Champs manquants' });
   const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
   if (!user) return res.status(401).json({ error: 'Identifiants invalides' });
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) return res.status(401).json({ error: 'Identifiants invalides' });
-  const token = jwt.sign({ id: user.id, username }, JWT_SECRET);
-  res.json({ token, username });
+  const token = jwt.sign(
+    { id: user.id, username: user.username, role: user.role || 'user' },
+    JWT_SECRET
+  );
+  res.json({ token, username: user.username, role: user.role || 'user' });
 });
 
 function auth(req, res, next) {
@@ -73,6 +75,64 @@ function auth(req, res, next) {
   }
 }
 
+function adminOnly(req, res, next) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès réservé aux administrateurs' });
+  }
+  next();
+}
+
+// ============ GESTION DES UTILISATEURS (ADMIN) ============
+app.get('/api/admin/users', auth, adminOnly, (req, res) => {
+  const users = db.prepare(`
+    SELECT u.id, u.username, u.role, u.created_at,
+           creator.username AS created_by_name,
+           (SELECT COUNT(*) FROM progress p WHERE p.user_id = u.id AND p.position > 5) AS courses_started
+    FROM users u
+    LEFT JOIN users creator ON creator.id = u.created_by
+    ORDER BY u.role DESC, u.username ASC
+  `).all();
+  res.json(users);
+});
+
+app.post('/api/admin/users', auth, adminOnly, async (req, res) => {
+  const { username, password, role } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'Champs manquants' });
+  if (username.length < 3) return res.status(400).json({ error: 'Nom trop court (min 3 caractères)' });
+  if (password.length < 6) return res.status(400).json({ error: 'Mot de passe trop court (min 6 caractères)' });
+  const finalRole = (role === 'admin') ? 'admin' : 'user';
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    const info = db.prepare(
+      'INSERT INTO users (username, password, role, created_at, created_by) VALUES (?, ?, ?, ?, ?)'
+    ).run(username, hash, finalRole, Date.now(), req.user.id);
+    res.json({ id: info.lastInsertRowid, username, role: finalRole });
+  } catch (e) {
+    res.status(400).json({ error: 'Utilisateur existe déjà' });
+  }
+});
+
+app.delete('/api/admin/users/:id', auth, adminOnly, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (id === req.user.id) return res.status(400).json({ error: 'Impossible de se supprimer soi-même' });
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+  db.prepare('DELETE FROM progress WHERE user_id = ?').run(id);
+  db.prepare('DELETE FROM users WHERE id = ?').run(id);
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/users/:id/password', auth, adminOnly, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const { password } = req.body;
+  if (!password || password.length < 6) return res.status(400).json({ error: 'Mot de passe trop court (min 6)' });
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+  const hash = await bcrypt.hash(password, 10);
+  db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hash, id);
+  res.json({ ok: true });
+});
+
 // ============ DÉTECTION DES SOUS-TITRES ============
 function findSubtitles(dirAbs, baseName, relDir) {
   const subtitles = [];
@@ -84,19 +144,15 @@ function findSubtitles(dirAbs, baseName, relDir) {
       const entryBase = entry.slice(0, -4);
       if (entryBase === baseName || entryBase.startsWith(baseName + '.')) {
         let lang = 'default';
-        if (entryBase !== baseName) {
-          lang = entryBase.slice(baseName.length + 1).toLowerCase();
-        }
-        subtitles.push({ name: entry, lang: lang, path: path.join(relSub, entry) });
+        if (entryBase !== baseName) lang = entryBase.slice(baseName.length + 1).toLowerCase();
+        subtitles.push({ name: entry, lang, path: path.join(relSub, entry) });
       }
     }
   };
   scan(dirAbs, relDir);
-  const s1 = path.join(dirAbs, 'subtitles');
-  const r1 = path.join(relDir, 'subtitles');
+  const s1 = path.join(dirAbs, 'subtitles'), r1 = path.join(relDir, 'subtitles');
   if (fs.existsSync(s1) && fs.statSync(s1).isDirectory()) scan(s1, r1);
-  const s2 = path.join(dirAbs, 'Subtitles');
-  const r2 = path.join(relDir, 'Subtitles');
+  const s2 = path.join(dirAbs, 'Subtitles'), r2 = path.join(relDir, 'Subtitles');
   if (fs.existsSync(s2) && fs.statSync(s2).isDirectory()) scan(s2, r2);
   subtitles.sort((a, b) => {
     if (a.lang === 'default') return -1;
@@ -150,11 +206,9 @@ function smartCompare(a, b) {
       const bv = bNum[i] !== undefined ? bNum[i] : 0;
       if (av !== bv) return av - bv;
     }
-  } else if (aNum && !bNum) {
-    return -1;
-  } else if (!aNum && bNum) {
-    return 1;
-  } else {
+  } else if (aNum && !bNum) return -1;
+  else if (!aNum && bNum) return 1;
+  else {
     const aKw = getKeywordPriority(a.name);
     const bKw = getKeywordPriority(b.name);
     if (aKw !== bKw) return aKw - bKw;
@@ -225,11 +279,7 @@ app.get('/api/stream/*', auth, (req, res) => {
     });
     fs.createReadStream(resolved, { start, end }).pipe(res);
   } else {
-    res.writeHead(200, {
-      'Content-Length': stat.size,
-      'Content-Type': contentType,
-      'Accept-Ranges': 'bytes',
-    });
+    res.writeHead(200, { 'Content-Length': stat.size, 'Content-Type': contentType, 'Accept-Ranges': 'bytes' });
     fs.createReadStream(resolved).pipe(res);
   }
 });
