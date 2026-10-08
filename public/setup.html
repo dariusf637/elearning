@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuration initiale — Ma Plateforme</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    color: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .setup-container { width: 100%; max-width: 520px; }
+  .setup-card {
+    background: #1a1a2e; border: 1px solid #2a2a44; border-radius: 12px;
+    padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .setup-header { text-align: center; margin-bottom: 30px; }
+  .setup-header .logo { font-size: 48px; margin-bottom: 10px; }
+  .setup-header h1 { font-size: 24px; color: #e94560; margin-bottom: 8px; }
+  .setup-header p { color: #888; font-size: 14px; line-height: 1.5; }
+  .step-badge {
+    display: inline-block; background: #e94560; color: #fff;
+    font-size: 11px; padding: 4px 10px; border-radius: 12px;
+    font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .info-box {
+    background: #0f0f1a; border-left: 3px solid #4ade80;
+    padding: 12px 16px; border-radius: 6px; margin-bottom: 24px;
+    font-size: 13px; color: #aaa; line-height: 1.5;
+  }
+  .info-box.warn { border-left-color: #f59e0b; color: #f59e0b; }
+  .info-box.error { border-left-color: #e94560; color: #e94560; }
+  .info-box code {
+    background: #1a1a2e; padding: 2px 6px; border-radius: 3px;
+    font-family: 'Consolas', monospace; font-size: 12px; color: #4ade80;
+  }
+  .form-group { margin-bottom: 18px; }
+  label {
+    display: block; font-size: 13px; color: #aaa; margin-bottom: 6px;
+    font-weight: 500;
+  }
+  input {
+    width: 100%; padding: 12px 14px; background: #0f0f1a;
+    border: 1px solid #2a2a44; border-radius: 6px; color: #fff;
+    font-size: 14px; transition: border-color 0.15s;
+  }
+  input:focus { outline: none; border-color: #e94560; }
+  input.error { border-color: #e94560; }
+  .hint { font-size: 11px; color: #666; margin-top: 4px; }
+  button[type="submit"] {
+    width: 100%; padding: 13px; margin-top: 8px;
+    background: #e94560; border: none; border-radius: 6px;
+    color: #fff; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+  }
+  button[type="submit"]:hover:not(:disabled) { background: #c73650; }
+  button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
+  .error-msg {
+    color: #e94560; font-size: 13px; margin-top: 12px;
+    text-align: center; min-height: 18px;
+  }
+  .success-msg {
+    color: #4ade80; font-size: 15px; text-align: center;
+    padding: 20px; font-weight: 500;
+  }
+  .success-icon { font-size: 48px; text-align: center; margin-bottom: 12px; }
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin-right: 8px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hidden { display: none; }
+  .setup-footer {
+    text-align: center; margin-top: 20px;
+    font-size: 12px; color: #555;
+  }
+</style>
+</head>
+<body>
+
+<div class="setup-container">
+  <div class="setup-card">
+
+    <div id="step-loading">
+      <div class="setup-header">
+        <div class="logo">⚙️</div>
+        <h1>Configuration initiale</h1>
+        <p>Vérification du système…</p>
+      </div>
+      <div style="text-align:center;padding:20px;">
+        <div class="spinner" style="width:24px;height:24px;border-width:3px;"></div>
+      </div>
+    </div>
+
+    <div id="step-form" class="hidden">
+      <div class="setup-header">
+        <span class="step-badge">Étape 1 / 1</span>
+        <div class="logo">👤</div>
+        <h1>Créer votre administrateur</h1>
+        <p>Ce compte vous permettra de gérer la plateforme et de créer les comptes utilisateurs.</p>
+      </div>
+
+      <div id="media-status"></div>
+
+      <form id="setup-form">
+        <div class="form-group">
+          <label for="username">Nom d'utilisateur</label>
+          <input type="text" id="username" placeholder="admin" autocomplete="off" required>
+          <div class="hint">Au moins 3 caractères. Lettres, chiffres, _, . et - uniquement.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="new-password" required>
+          <div class="hint">Au moins 6 caractères.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="passwordConfirm">Confirmer le mot de passe</label>
+          <input type="password" id="passwordConfirm" placeholder="••••••••" autocomplete="new-password" required>
+        </div>
+
+        <button type="submit" id="submit-btn">Créer le compte administrateur</button>
+        <div class="error-msg" id="error-msg"></div>
+      </form>
+    </div>
+
+    <div id="step-success" class="hidden">
+      <div class="success-icon">✅</div>
+      <div class="success-msg">
+        Votre compte administrateur a été créé avec succès.
+        <br><br>
+        Redirection vers la page de connexion…
+      </div>
+    </div>
+
+    <div id="step-already" class="hidden">
+      <div class="setup-header">
+        <div class="logo">✅</div>
+        <h1>Déjà configuré</h1>
+        <p>Un administrateur existe déjà pour cette instance.</p>
+      </div>
+      <a href="/" style="display:block;text-align:center;padding:12px;background:#e94560;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">Aller à la connexion</a>
+    </div>
+
+  </div>
+  <div class="setup-footer">
+    Ma Plateforme E-learning — Setup v1.0
+  </div>
+</div>
+
+<script>
+async function checkStatus() {
+  try {
+    const r = await fetch('/api/setup/status');
+    const data = await r.json();
+
+    document.getElementById('step-loading').classList.add('hidden');
+
+    if (!data.needsSetup) {
+      document.getElementById('step-already').classList.remove('hidden');
+      return;
+    }
+
+    const mediaStatus = document.getElementById('media-status');
+    if (!data.mediaRootExists) {
+      mediaStatus.innerHTML = `<div class="info-box warn">
+        ⚠️ Le dossier <code>${data.mediaRoot}</code> n'existe pas encore.<br>
+        Vous pourrez le monter plus tard (rclone, NFS, disque local, etc.).
+      </div>`;
+    } else if (!data.mediaRootHasContent) {
+      mediaStatus.innerHTML = `<div class="info-box warn">
+        ⚠️ Le dossier <code>${data.mediaRoot}</code> est vide.<br>
+        Ajoutez-y vos cours pour qu'ils apparaissent dans la plateforme.
+      </div>`;
+    } else {
+      mediaStatus.innerHTML = `<div class="info-box">
+        ✅ Dossier des cours détecté : <code>${data.mediaRoot}</code>
+      </div>`;
+    }
+
+    document.getElementById('step-form').classList.remove('hidden');
+    document.getElementById('username').focus();
+  } catch (e) {
+    document.getElementById('step-loading').innerHTML = `
+      <div class="setup-header">
+        <div class="logo">❌</div>
+        <h1>Erreur de connexion</h1>
+        <p>Impossible de contacter le serveur. Vérifiez que l'application tourne.</p>
+      </div>
+      <button onclick="location.reload()" style="width:100%;padding:13px;background:#e94560;border:none;border-radius:6px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;">Réessayer</button>
+    `;
+  }
+}
+
+document.getElementById('setup-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const passwordConfirm = document.getElementById('passwordConfirm').value;
+  const err = document.getElementById('error-msg');
+  const btn = document.getElementById('submit-btn');
+
+  err.textContent = '';
+
+  if (!username || !password || !passwordConfirm) {
+    err.textContent = 'Tous les champs sont requis.';
+    return;
+  }
+  if (username.length < 3) {
+    err.textContent = 'Nom d\'utilisateur : minimum 3 caractères.';
+    return;
+  }
+  if (password.length < 6) {
+    err.textContent = 'Mot de passe : minimum 6 caractères.';
+    return;
+  }
+  if (password !== passwordConfirm) {
+    err.textContent = 'Les deux mots de passe ne correspondent pas.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Création en cours…';
+
+  try {
+    const r = await fetch('/api/setup/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, passwordConfirm })
+    });
+    const data = await r.json();
+
+    if (!r.ok) {
+      err.textContent = data.error || 'Erreur lors de la création.';
+      btn.disabled = false;
+      btn.textContent = 'Créer le compte administrateur';
+      return;
+    }
+
+    document.getElementById('step-form').classList.add('hidden');
+    document.getElementById('step-success').classList.remove('hidden');
+
+    setTimeout(() => { window.location.href = '/'; }, 2000);
+  } catch (e) {
+    err.textContent = 'Erreur réseau. Réessayez.';
+    btn.disabled = false;
+    btn.textContent = 'Créer le compte administrateur';
+  }
+});
+
+checkStatus();
+</script>
+</body>
+</html>
