@@ -185,24 +185,86 @@ app.post('/api/admin/users/:id/password', auth, adminOnly, async (req, res) => {
 // ============ SOUS-TITRES ============
 function findSubtitles(dirAbs, baseName, relDir) {
   const subtitles = [];
+
+  // Dictionnaire des noms de langues → codes ISO
+  const LANG_MAP = {
+    'arabic': 'ar', 'bulgarian': 'bg', 'chinese': 'zh', 'croatian': 'hr',
+    'czech': 'cs', 'danish': 'da', 'dutch': 'nl', 'english': 'en',
+    'estonian': 'et', 'finnish': 'fi', 'french': 'fr', 'german': 'de',
+    'greek': 'el', 'hebrew': 'he', 'hindi': 'hi', 'hungarian': 'hu',
+    'indonesian': 'id', 'italian': 'it', 'japanese': 'ja', 'korean': 'ko',
+    'latvian': 'lv', 'lithuanian': 'lt', 'norwegian': 'no', 'persian': 'fa',
+    'polish': 'pl', 'portuguese': 'pt', 'romanian': 'ro', 'russian': 'ru',
+    'serbian': 'sr', 'slovak': 'sk', 'slovenian': 'sl', 'spanish': 'es',
+    'swedish': 'sv', 'thai': 'th', 'turkish': 'tr', 'ukrainian': 'uk',
+    'vietnamese': 'vi', 'français': 'fr', 'anglais': 'en', 'espagnol': 'es',
+    'allemand': 'de', 'italien': 'it', 'portugais': 'pt', 'russe': 'ru',
+    'arabe': 'ar', 'chinois': 'zh', 'japonais': 'ja', 'coréen': 'ko'
+  };
+
+  // Extrait le code langue d'une chaîne (nom complet ou code court)
+  function extractLang(str) {
+    if (!str) return null;
+    const s = str.toLowerCase().trim();
+    // Code court (fr, en, es...)
+    if (/^[a-z]{2}$/.test(s)) return s;
+    // Code court avec région (fr-fr, en-us, pt-br...)
+    if (/^[a-z]{2}[-_][a-z]{2}$/.test(s)) return s.slice(0, 2);
+    // Nom complet de langue
+    if (LANG_MAP[s]) return LANG_MAP[s];
+    // Nom complet avec "Français (France)" par exemple
+    for (const [name, code] of Object.entries(LANG_MAP)) {
+      if (s.startsWith(name)) return code;
+    }
+    return null;
+  }
+
   const scan = (absDir, relSub) => {
     let entries;
     try { entries = fs.readdirSync(absDir); } catch { return; }
     for (const entry of entries) {
       if (!entry.toLowerCase().endsWith('.vtt')) continue;
-      const entryBase = entry.slice(0, -4);
-      if (entryBase === baseName || entryBase.startsWith(baseName + '.')) {
-        let lang = 'default';
-        if (entryBase !== baseName) lang = entryBase.slice(baseName.length + 1).toLowerCase();
+      const entryBase = entry.slice(0, -4); // enlève .vtt
+
+      let lang = null;
+
+      // Cas 1 : nom exact (même nom que la vidéo)
+      if (entryBase === baseName) {
+        lang = 'default';
+      }
+      // Cas 2 : <base>.<lang>.vtt (ex: video.fr.vtt)
+      else if (entryBase.startsWith(baseName + '.')) {
+        const suffix = entryBase.slice(baseName.length + 1);
+        lang = extractLang(suffix) || suffix.toLowerCase();
+      }
+      // Cas 3 : <base> <Langue>.vtt (ex: "1 - Introduction French.vtt")
+      else if (entryBase.startsWith(baseName + ' ')) {
+        const suffix = entryBase.slice(baseName.length + 1);
+        lang = extractLang(suffix) || suffix.toLowerCase();
+      }
+      // Cas 4 : <base> - <Langue>.vtt (ex: "video - French.vtt")
+      else if (entryBase.startsWith(baseName + ' - ')) {
+        const suffix = entryBase.slice(baseName.length + 3);
+        lang = extractLang(suffix) || suffix.toLowerCase();
+      }
+      // Cas 5 : <base>_<Langue>.vtt (ex: video_French.vtt)
+      else if (entryBase.startsWith(baseName + '_')) {
+        const suffix = entryBase.slice(baseName.length + 1);
+        lang = extractLang(suffix) || suffix.toLowerCase();
+      }
+
+      if (lang) {
         subtitles.push({ name: entry, lang, path: path.join(relSub, entry) });
       }
     }
   };
+
   scan(dirAbs, relDir);
   const s1 = path.join(dirAbs, 'subtitles'), r1 = path.join(relDir, 'subtitles');
   if (fs.existsSync(s1) && fs.statSync(s1).isDirectory()) scan(s1, r1);
   const s2 = path.join(dirAbs, 'Subtitles'), r2 = path.join(relDir, 'Subtitles');
   if (fs.existsSync(s2) && fs.statSync(s2).isDirectory()) scan(s2, r2);
+
   subtitles.sort((a, b) => {
     if (a.lang === 'default') return -1;
     if (b.lang === 'default') return 1;
