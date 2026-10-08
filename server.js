@@ -7,7 +7,9 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const app = express();
-const db = new sqlite3('/root/elearning/platform.db');
+const DB_PATH = path.join(__dirname, 'platform.db');
+const SCHEMA_PATH = path.join(__dirname, 'schema.sql');
+const db = new sqlite3(DB_PATH);
 const MEDIA_ROOT = process.env.MEDIA_ROOT || '/mnt/yandex_disk';
 const PORT = process.env.PORT || 3000;
 
@@ -28,39 +30,49 @@ if (!jwtSecret) {
 }
 const JWT_SECRET = jwtSecret;
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+// ============ INITIALISATION DE LA BASE ============
+// Crée les tables si elles n'existent pas
+if (fs.existsSync(SCHEMA_PATH)) {
+  try {
+    db.exec(fs.readFileSync(SCHEMA_PATH, 'utf8'));
+  } catch (e) {
+    console.error('⚠️ Erreur schéma:', e.message);
+  }
+} else {
+  // Fallback : création inline si schema.sql manquant
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'user',
+      created_at INTEGER,
+      created_by INTEGER
+    );
+    CREATE TABLE IF NOT EXISTS progress (
+      user_id INTEGER,
+      video_path TEXT,
+      position REAL DEFAULT 0,
+      duration REAL DEFAULT 0,
+      completed INTEGER DEFAULT 0,
+      archived INTEGER DEFAULT 0,
+      last_watched INTEGER,
+      updated_at INTEGER,
+      PRIMARY KEY (user_id, video_path)
+    );
+  `);
+}
 
-// ============ BASE DE DONNÉES ============
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY,
-    username TEXT UNIQUE,
-    password TEXT,
-    role TEXT DEFAULT 'user',
-    created_at INTEGER,
-    created_by INTEGER
-  );
-  CREATE TABLE IF NOT EXISTS progress (
-    user_id INTEGER,
-    video_path TEXT,
-    position REAL DEFAULT 0,
-    duration REAL DEFAULT 0,
-    completed INTEGER DEFAULT 0,
-    archived INTEGER DEFAULT 0,
-    last_watched INTEGER,
-    updated_at INTEGER,
-    PRIMARY KEY (user_id, video_path)
-  );
-  CREATE INDEX IF NOT EXISTS idx_progress_user ON progress(user_id);
-`);
-
+// Migration : ajouter les colonnes manquantes si la base vient d'une ancienne version
 try {
   const cols = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
   if (!cols.includes('role')) db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
   if (!cols.includes('created_at')) db.exec("ALTER TABLE users ADD COLUMN created_at INTEGER");
   if (!cols.includes('created_by')) db.exec("ALTER TABLE users ADD COLUMN created_by INTEGER");
 } catch (e) { console.error('Migration:', e.message); }
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ============ SETUP ============
 function hasAdmin() {
@@ -372,6 +384,17 @@ app.get('/api/archived', auth, (req, res) => {
   res.json(rows);
 });
 
+app.get('/api/completed', auth, (req, res) => {
+  const rows = db.prepare(`
+    SELECT video_path, position, duration, completed, last_watched,
+           CASE WHEN duration > 0 THEN ROUND(position * 100.0 / duration, 1) ELSE 0 END AS percent
+    FROM progress
+    WHERE user_id = ? AND completed = 1
+    ORDER BY last_watched DESC
+  `).all(req.user.id);
+  res.json(rows);
+});
+
 // ============ STREAMING ============
 app.get('/api/stream/*', auth, (req, res) => {
   const rel = decodeURIComponent(req.params[0]);
@@ -460,10 +483,18 @@ app.post('/api/archive', auth, (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 Plateforme e-learning sur http://0.0.0.0:${PORT}`);
   console.log(`📁 Media root: ${MEDIA_ROOT}`);
+  console.log(`💾 Base de données: ${DB_PATH}`);
   if (!hasAdmin()) {
     console.log(`\n⚠️  Aucun administrateur trouvé.`);
     console.log(`👉  Ouvrez http://localhost:${PORT} pour créer le compte admin.\n`);
   } else {
     console.log(`✅ Prêt.\n`);
   }
+});
+
+// Arrêt propre
+process.on('SIGINT', () => {
+  console.log('\n👋 Fermeture propre de la base…');
+  try { db.close(); } catch {}
+  process.exit(0);
 });

@@ -1,9 +1,13 @@
 {
   "name": "elearning",
   "version": "1.0.0",
+  "description": "Plateforme e-learning auto-hébergée",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "init-db": "node init-db.js",
+    "db-status": "node init-db.js --status",
+    "db-reset": "node init-db.js --reset"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

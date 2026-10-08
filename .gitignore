@@ -1,5 +1,8 @@
 node_modules/
 *.db
+*.db-wal
+*.db-shm
 *.log
 .env
 .config.json
+backups/
