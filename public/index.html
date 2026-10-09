@@ -1,388 +1,3 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ma Plateforme</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; }
-  body { font-family: system-ui, -apple-system, sans-serif; background: #0f0f1a; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-
-  #navbar { min-height: 56px; background: #1a1a2e; border-bottom: 1px solid #222; display: flex; align-items: center; padding: 0 16px; gap: 14px; flex-shrink: 0; flex-wrap: nowrap; }
-  #navbar .brand { color: #e94560; font-weight: 700; font-size: 16px; white-space: nowrap; }
-  #navbar .search-box { position: relative; flex: 1; max-width: 320px; }
-  #navbar .search-box input { width: 100%; padding: 7px 12px 7px 30px; background: #0f0f1a; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 13px; }
-  #navbar .search-box input:focus { outline: none; border-color: #e94560; }
-  #navbar .search-box::before { content: '🔍'; position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 12px; opacity: 0.6; }
-  #navbar .search-results { position: absolute; top: 100%; left: 0; right: 0; margin-top: 6px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; max-height: 400px; overflow-y: auto; display: none; z-index: 50; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-  #navbar .search-results.open { display: block; }
-  #navbar .search-results .sr-cat { padding: 8px 12px 4px; font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
-  #navbar .search-results .sr-item { padding: 8px 12px; cursor: pointer; font-size: 13px; border-radius: 4px; margin: 2px 4px; }
-  #navbar .search-results .sr-item:hover { background: #16213e; }
-  #navbar .search-results .sr-item .sr-sub { font-size: 10px; color: #666; margin-top: 2px; }
-  #navbar .search-results .sr-empty { padding: 16px; font-size: 12px; color: #666; text-align: center; }
-
-  #navbar .nav-links { display: flex; gap: 2px; overflow-x: auto; -webkit-overflow-scrolling: touch; flex-shrink: 0; }
-  #navbar .nav-links::-webkit-scrollbar { display: none; }
-  #navbar .nav-links a { color: #999; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
-  #navbar .nav-links a:hover { color: #fff; background: #16213e; }
-  #navbar .nav-links a.active { color: #fff; background: #16213e; }
-  #navbar .nav-user { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #999; flex-shrink: 0; margin-left: auto; }
-  #navbar .nav-user .role-badge { background: #e94560; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
-  #navbar button { background: none; border: 1px solid #333; color: #aaa; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; white-space: nowrap; }
-  #navbar button:hover { border-color: #e94560; color: #e94560; }
-
-  #main { flex: 1; overflow: hidden; position: relative; }
-  .view { position: absolute; inset: 0; overflow-y: auto; display: none; }
-  .view.active { display: block; }
-  .page-container { padding: 24px 32px; max-width: 1200px; margin: 0 auto; }
-  .page-container h1 { font-size: 24px; margin-bottom: 20px; }
-  .page-container h2 { font-size: 15px; color: #ccc; margin: 26px 0 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; display: flex; justify-content: space-between; align-items: center; }
-  .page-container h2 .section-action { font-size: 11px; text-transform: none; letter-spacing: 0; color: #e94560; cursor: pointer; font-weight: 500; background: none; border: none; padding: 4px 8px; border-radius: 4px; }
-  .page-container h2 .section-action:hover { background: rgba(233,69,96,0.15); }
-  .page-container h2 .section-count { font-size: 11px; text-transform: none; letter-spacing: 0; color: #555; font-weight: 400; margin-left: 8px; }
-
-  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-  .card { background: #1a1a2e; border: 1px solid #222; border-radius: 8px; padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
-  .card:hover { border-color: #e94560; transform: translateY(-2px); }
-  .card .card-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; min-height: 34px; }
-  .card .card-meta { font-size: 11px; color: #888; margin-bottom: 10px; }
-  .card .card-bar { height: 5px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
-  .card .card-bar > div { height: 100%; background: #4ade80; transition: width 0.3s; }
-  .card .card-percent { font-size: 11px; color: #4ade80; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
-  .card .card-percent .lessons-done { color: #888; font-weight: 400; font-size: 10px; }
-  .card .card-play { position: absolute; top: 12px; right: 12px; background: #e94560; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-  .card .card-play.done { background: #4ade80; color: #000; }
-
-  .course-layout { display: flex; height: 100%; }
-  .course-sidebar { width: 380px; background: #1a1a2e; display: flex; flex-direction: column; border-right: 1px solid #222; flex-shrink: 0; }
-  .course-sidebar .course-header { padding: 12px 16px; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 10px; }
-  .course-sidebar .course-header button { background: #333; border: none; color: #fff; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap; }
-  .course-sidebar .course-header button:hover { background: #e94560; }
-  .course-sidebar .course-header h2 { font-size: 13px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-  .course-sidebar .lesson-list { flex: 1; overflow-y: auto; padding: 8px; }
-  .course-main { flex: 1; display: flex; flex-direction: column; background: #000; min-width: 0; }
-  .player-wrap { flex: 1; position: relative; background: #000; min-height: 200px; }
-  video { width: 100%; height: 100%; background: #000; outline: none; }
-  video::cue { background: rgba(0,0,0,0.75); color: #fff; font-size: 22px; line-height: 1.4; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); }
-  #resume-toast { position: absolute; bottom: 20px; left: 20px; background: rgba(233,69,96,0.95); padding: 10px 16px; border-radius: 6px; font-size: 13px; display: none; z-index: 3; }
-
-  /* PDF viewer */
-  #pdf-viewer { width: 100%; height: 100%; background: #2a2a3e; border: none; display: none; }
-  .pdf-active #player { display: none; }
-  .pdf-active #pdf-viewer { display: block; }
-
-  #auto-next { position: absolute; bottom: 70px; right: 20px; background: rgba(26,26,46,0.95); border: 1px solid #333; border-radius: 8px; padding: 14px 16px; font-size: 13px; display: none; z-index: 4; min-width: 260px; }
-  #auto-next .an-title { color: #fff; margin-bottom: 6px; font-weight: 600; }
-  #auto-next .an-name { color: #aaa; font-size: 12px; margin-bottom: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #auto-next .an-actions { display: flex; gap: 8px; }
-
-  .player-info { padding: 10px 16px; background: #1a1a2e; font-size: 13px; color: #aaa; display: flex; justify-content: space-between; align-items: center; gap: 10px; position: relative; flex-wrap: wrap; }
-  .player-info .info-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 150px; }
-  .player-info .info-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .btn { padding: 6px 12px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap; }
-  .btn:hover { background: #e94560; }
-  .speed-select { padding: 5px 8px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
-
-  .folder-wrapper { margin: 2px 0; }
-  .folder-header { padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 6px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; user-select: none; transition: background 0.15s; }
-  .folder-header:hover { background: #16213e; color: #fff; }
-  .folder-chevron { display: inline-block; font-size: 9px; transition: transform 0.2s ease; flex-shrink: 0; width: 10px; text-align: center; }
-  .folder-header.open .folder-chevron { transform: rotate(90deg); }
-  .folder-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-  .folder-count { margin-left: auto; font-size: 10px; color: #555; font-weight: 400; background: #222; padding: 1px 6px; border-radius: 8px; flex-shrink: 0; }
-  .folder-header.open .folder-count { color: #4ade80; background: rgba(74,222,128,0.15); }
-  .folder-children { margin-left: 10px; border-left: 1px solid #2a2a44; padding-left: 4px; overflow: hidden; }
-  .folder-children.collapsed { display: none; }
-
-  .lesson { padding: 11px 14px; cursor: pointer; font-size: 13px; border-radius: 6px; margin: 2px 0; display: flex; flex-direction: column; gap: 4px; position: relative; }
-  .lesson:hover { background: #16213e; }
-  .lesson.active { background: #e94560; }
-  .lesson .title-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .lesson .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-  .lesson .cc-badge { font-size: 9px; background: #4ade80; color: #000; padding: 1px 5px; border-radius: 3px; font-weight: 600; flex-shrink: 0; }
-  .lesson .quiz-badge { font-size: 9px; background: #f59e0b; color: #000; padding: 1px 5px; border-radius: 3px; font-weight: 600; flex-shrink: 0; }
-  .lesson .fav-btn { font-size: 13px; cursor: pointer; padding: 2px 4px; border-radius: 3px; opacity: 0.4; flex-shrink: 0; }
-  .lesson .fav-btn:hover { opacity: 1; background: rgba(255,255,255,0.1); }
-  .lesson .fav-btn.active { opacity: 1; }
-
-  /* Documents */
-  .docs-separator { padding: 14px 12px 4px; font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1px; border-top: 1px solid #2a2a44; margin-top: 10px; }
-  .doc-item { padding: 11px 14px; cursor: pointer; font-size: 13px; border-radius: 6px; margin: 2px 0; display: flex; align-items: center; gap: 8px; color: #ccc; }
-  .doc-item:hover { background: #16213e; color: #fff; }
-  .doc-item.active { background: #e94560; color: #fff; }
-  .doc-item .doc-icon { flex-shrink: 0; font-size: 14px; }
-  .doc-item .doc-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-
-  #subtitle-menu { position: absolute; bottom: 100%; right: 12px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; padding: 6px; min-width: 200px; display: none; z-index: 10; max-height: 60vh; overflow-y: auto; }
-  #subtitle-menu.open { display: block; }
-  #subtitle-menu .item { padding: 8px 12px; font-size: 13px; cursor: pointer; border-radius: 4px; color: #ccc; }
-  #subtitle-menu .item:hover { background: #16213e; color: #fff; }
-  #subtitle-menu .item.selected { background: #e94560; color: #fff; }
-  #subtitle-menu .header { padding: 6px 12px; font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
-
-  #view-login { display: none; align-items: center; justify-content: center; padding: 20px; }
-  #view-login.active { display: flex; }
-  .login-box { background: #1a1a2e; padding: 30px; border-radius: 10px; width: 100%; max-width: 340px; border: 1px solid #333; }
-  .login-box h2 { color: #e94560; margin-bottom: 20px; text-align: center; font-size: 20px; }
-  .login-box input { width: 100%; padding: 11px; margin: 6px 0; background: #0f0f1a; border: 1px solid #333; border-radius: 4px; color: #fff; font-size: 15px; }
-  .login-box button { width: 100%; padding: 11px; margin-top: 12px; background: #e94560; border: none; border-radius: 4px; color: #fff; cursor: pointer; font-size: 14px; font-weight: 500; }
-  .login-box button:hover { background: #c73650; }
-  .login-box .error { color: #e94560; font-size: 12px; margin-top: 8px; text-align: center; min-height: 16px; }
-
-  .admin-form { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-  .admin-form input, .admin-form select { padding: 9px 12px; background: #0f0f1a; border: 1px solid #333; border-radius: 4px; color: #fff; font-size: 13px; min-width: 180px; flex: 1; }
-  .admin-form button { padding: 9px 16px; background: #e94560; border: none; border-radius: 4px; color: #fff; cursor: pointer; font-size: 13px; }
-  .admin-form button:hover { background: #c73650; }
-  .admin-error { color: #e94560; font-size: 13px; margin-bottom: 15px; min-height: 18px; }
-  .user-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #1a1a2e; border-radius: 6px; margin: 6px 0; gap: 10px; }
-  .user-row .info { flex: 1; min-width: 0; }
-  .user-row .name { font-size: 14px; font-weight: 600; }
-  .user-row .name .role-badge { background: #e94560; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-left: 6px; }
-  .user-row .sub { font-size: 11px; color: #666; margin-top: 3px; }
-  .user-row .mini-btn { font-size: 12px; padding: 5px 10px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-  .user-row .mini-btn:hover { background: #e94560; }
-  .user-row .mini-btn.danger:hover { background: #c73650; }
-  .user-row .actions { display: flex; gap: 5px; flex-shrink: 0; }
-
-  .empty { padding: 30px 16px; color: #666; font-size: 13px; text-align: center; }
-
-  .quiz-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
-  .quiz-overlay.open { display: flex; }
-  .quiz-modal { background: #1a1a2e; border: 1px solid #333; border-radius: 12px; width: 100%; max-width: 600px; max-height: 85vh; display: flex; flex-direction: column; }
-  .quiz-modal .quiz-header { padding: 18px 22px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-  .quiz-modal .quiz-header h2 { font-size: 16px; color: #e94560; margin: 0; }
-  .quiz-modal .quiz-close { background: none; border: none; color: #888; font-size: 22px; cursor: pointer; padding: 0 6px; }
-  .quiz-modal .quiz-close:hover { color: #e94560; }
-  .quiz-modal .quiz-body { padding: 20px 22px; overflow-y: auto; flex: 1; }
-  .quiz-q { margin-bottom: 22px; }
-  .quiz-q .q-text { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
-  .quiz-q .q-num { color: #e94560; margin-right: 6px; }
-  .quiz-q .q-option { display: flex; align-items: center; padding: 9px 12px; background: #0f0f1a; border: 1px solid #333; border-radius: 6px; margin: 6px 0; cursor: pointer; font-size: 13px; transition: border-color 0.15s; }
-  .quiz-q .q-option:hover { border-color: #e94560; }
-  .quiz-q .q-option.selected { border-color: #e94560; background: rgba(233,69,96,0.1); }
-  .quiz-q .q-option.correct { border-color: #4ade80; background: rgba(74,222,128,0.1); }
-  .quiz-q .q-option.wrong { border-color: #e94560; background: rgba(233,69,96,0.15); }
-  .quiz-q .q-option input { margin-right: 10px; }
-  .quiz-q .q-explanation { font-size: 12px; color: #4ade80; margin-top: 8px; padding: 8px 12px; background: rgba(74,222,128,0.1); border-radius: 4px; display: none; }
-  .quiz-q .q-explanation.show { display: block; }
-  .quiz-modal .quiz-footer { padding: 16px 22px; border-top: 1px solid #222; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-  .quiz-result { font-size: 14px; }
-  .quiz-result.pass { color: #4ade80; }
-  .quiz-result.fail { color: #e94560; }
-
-  @media (max-width: 900px) {
-    .course-sidebar { width: 280px; }
-    .page-container { padding: 20px; }
-    #navbar .search-box { max-width: 180px; }
-  }
-  @media (max-width: 700px) {
-    #navbar { flex-wrap: wrap; padding: 8px 12px; gap: 8px; height: auto; min-height: 52px; }
-    #navbar .brand { font-size: 14px; }
-    #navbar .search-box { order: 4; width: 100%; max-width: none; }
-    #navbar .nav-user { order: 2; }
-    #navbar .nav-links { order: 3; width: 100%; justify-content: flex-start; gap: 2px; border-top: 1px solid #222; padding-top: 6px; margin-top: 4px; }
-    #navbar .nav-links a { font-size: 12px; padding: 6px 10px; }
-    #navbar .nav-user #nav-username { display: none; }
-    .page-container { padding: 16px 12px; }
-    .page-container h1 { font-size: 20px; margin-bottom: 16px; }
-    .page-container h2 { font-size: 13px; margin: 20px 0 10px; }
-    .card-grid { grid-template-columns: 1fr; gap: 10px; }
-    .card { padding: 12px; }
-    .card .card-title { font-size: 13px; min-height: auto; }
-    .course-layout { flex-direction: column-reverse; height: 100%; }
-    .course-sidebar { width: 100%; max-height: 45%; border-right: none; border-top: 1px solid #222; order: 2; }
-    .course-main { flex: 1; min-height: 0; order: 1; }
-    .course-sidebar .course-header h2 { font-size: 12px; }
-    .player-wrap { min-height: 180px; }
-    .player-info { flex-direction: column; align-items: stretch; padding: 8px 12px; gap: 6px; }
-    .player-info .info-text { font-size: 12px; white-space: normal; overflow: visible; text-overflow: clip; }
-    .btn { font-size: 11px; padding: 5px 10px; }
-    #subtitle-menu { right: 8px; left: 8px; min-width: 0; max-height: 50vh; }
-    .login-box { padding: 24px 20px; }
-    .admin-form { flex-direction: column; }
-    .admin-form input, .admin-form select { min-width: 0; width: 100%; }
-    .admin-form button { width: 100%; }
-    .user-row { flex-direction: column; align-items: flex-start; }
-    .user-row .actions { width: 100%; justify-content: flex-start; }
-    #auto-next { left: 12px; right: 12px; bottom: 60px; min-width: 0; }
-  }
-  @media (max-width: 400px) {
-    #navbar .brand { font-size: 13px; }
-    #navbar .nav-links a { font-size: 11px; padding: 5px 8px; }
-    .page-container h1 { font-size: 18px; }
-    .course-sidebar { max-height: 50%; }
-  }
-</style>
-</head>
-<body>
-
-<nav id="navbar">
-  <div class="brand">📚 Ma Plateforme</div>
-  <div class="search-box">
-    <input type="text" id="search-input" placeholder="Rechercher un cours, une leçon…" autocomplete="off">
-    <div class="search-results" id="search-results"></div>
-  </div>
-  <div class="nav-user">
-    <span id="nav-username"></span>
-    <button id="btn-logout">Déconnexion</button>
-  </div>
-  <div class="nav-links">
-    <a href="#/home" data-nav="home">Accueil</a>
-    <a href="#/courses" data-nav="courses">Cours</a>
-    <a href="#/in-progress" data-nav="in-progress">En cours</a>
-    <a href="#/completed" data-nav="completed">Terminés</a>
-    <a href="#/favorites" data-nav="favorites">⭐ Favoris</a>
-    <a href="#/admin" data-nav="admin" id="nav-admin" style="display:none">Admin</a>
-  </div>
-</nav>
-
-<main id="main">
-
-  <div id="view-login" class="view">
-    <div class="login-box">
-      <h2>📚 Ma Plateforme</h2>
-      <input type="text" id="login-username" placeholder="Nom d'utilisateur" autocomplete="off">
-      <input type="password" id="login-password" placeholder="Mot de passe" autocomplete="new-password">
-      <button id="login-btn">Se connecter</button>
-      <div class="error" id="login-error"></div>
-    </div>
-  </div>
-
-  <div id="view-home" class="view">
-    <div class="page-container">
-      <h1>Bonjour <span id="home-username"></span></h1>
-      <section id="home-resume-section">
-        <h2>▶ Reprendre</h2>
-        <div id="home-resume-grid" class="card-grid"></div>
-      </section>
-      <section id="home-completed-section">
-        <h2>✅ Cours terminés <span id="home-completed-action"></span></h2>
-        <div id="home-completed-grid" class="card-grid"></div>
-      </section>
-      <section>
-        <h2>📚 Mes cours</h2>
-        <div id="home-courses-grid" class="card-grid"></div>
-      </section>
-    </div>
-  </div>
-
-  <div id="view-courses" class="view">
-    <div class="page-container">
-      <h1>Tous les cours</h1>
-      <div id="courses-grid" class="card-grid"></div>
-    </div>
-  </div>
-
-  <div id="view-in-progress" class="view">
-    <div class="page-container">
-      <h1>▶ Cours en cours <span id="in-progress-count" style="font-size:14px;color:#666;font-weight:400;"></span></h1>
-      <div id="in-progress-grid" class="card-grid"></div>
-    </div>
-  </div>
-
-  <div id="view-completed" class="view">
-    <div class="page-container">
-      <h1>✅ Cours terminés <span id="completed-count" style="font-size:14px;color:#666;font-weight:400;"></span></h1>
-      <div id="completed-grid" class="card-grid"></div>
-    </div>
-  </div>
-
-  <div id="view-favorites" class="view">
-    <div class="page-container">
-      <h1>⭐ Favoris <span id="favorites-count" style="font-size:14px;color:#666;font-weight:400;"></span></h1>
-      <div id="favorites-grid" class="card-grid"></div>
-    </div>
-  </div>
-
-  <div id="view-course" class="view">
-    <div class="course-layout">
-      <aside class="course-sidebar">
-        <div class="course-header">
-          <button id="course-back">← Retour</button>
-          <h2 id="course-title"></h2>
-        </div>
-        <div class="lesson-list" id="course-lessons"></div>
-      </aside>
-      <div class="course-main">
-        <div class="player-wrap">
-          <video id="player" controls preload="metadata" playsinline></video>
-          <iframe id="pdf-viewer" title="Document"></iframe>
-          <div id="resume-toast"></div>
-          <div id="auto-next">
-            <div class="an-title">Leçon suivante dans <span id="an-count">5</span>s</div>
-            <div class="an-name" id="an-name"></div>
-            <div class="an-actions">
-              <button class="btn" id="an-play">▶ Lire maintenant</button>
-              <button class="btn" id="an-cancel">Annuler</button>
-            </div>
-          </div>
-        </div>
-        <div class="player-info">
-          <span class="info-text" id="info-text">Sélectionnez une leçon</span>
-          <div class="info-actions">
-            <button class="btn" id="back-to-video-btn" style="display:none;">▶ Retour à la vidéo</button>
-            <select class="speed-select" id="speed-select" title="Vitesse">
-              <option value="0.5">0.5x</option>
-              <option value="0.75">0.75x</option>
-              <option value="1" selected>1x</option>
-              <option value="1.25">1.25x</option>
-              <option value="1.5">1.5x</option>
-              <option value="1.75">1.75x</option>
-              <option value="2">2x</option>
-            </select>
-            <button class="btn" id="subtitle-btn" style="display:none;">💬 Sous-titres</button>
-            <button class="btn" id="complete-btn" style="display:none;">✅ Marquer terminé</button>
-          </div>
-          <div id="subtitle-menu"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="view-admin" class="view">
-    <div class="page-container">
-      <h1>⚙️ Administration</h1>
-      <section>
-        <h2>Créer un utilisateur</h2>
-        <div class="admin-form">
-          <input type="text" id="new-username" placeholder="Nom d'utilisateur">
-          <input type="password" id="new-password" placeholder="Mot de passe (min 6)">
-          <select id="new-role">
-            <option value="user">Utilisateur (lecture seule)</option>
-            <option value="admin">Administrateur</option>
-          </select>
-          <button id="create-user-btn">Créer</button>
-        </div>
-        <div class="admin-error" id="admin-error"></div>
-      </section>
-      <section>
-        <h2>Utilisateurs existants</h2>
-        <div id="admin-user-list"><div class="empty">Chargement…</div></div>
-      </section>
-    </div>
-  </div>
-
-</main>
-
-<div class="quiz-overlay" id="quiz-overlay">
-  <div class="quiz-modal">
-    <div class="quiz-header">
-      <h2>📝 Quiz : <span id="quiz-lesson-name"></span></h2>
-      <button class="quiz-close" id="quiz-close">×</button>
-    </div>
-    <div class="quiz-body" id="quiz-body"></div>
-    <div class="quiz-footer">
-      <span class="quiz-result" id="quiz-result"></span>
-      <div style="display:flex;gap:8px;">
-        <button class="btn" id="quiz-validate">Valider</button>
-        <button class="btn" id="quiz-close-btn" style="display:none;">Fermer</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
 (async () => {
   try {
@@ -570,7 +185,7 @@ async function doSearch(q) {
     }
     if (data.lessons.length) {
       const cat = document.createElement('div');
-      cat.className = 'sr-cat'; cat.textContent = 'Leçons';
+      cat.className = 'sr-cat'; cat.textContent = 'Leçons et documents';
       searchResults.appendChild(cat);
       data.lessons.forEach(l => {
         const el = document.createElement('div');
@@ -778,7 +393,6 @@ async function loadCourseDetail(coursePath, autoPlayVideo) {
       const target = currentCourseVideos.find(v => v.path === autoPlayVideo);
       if (target) playVideo(target);
       else {
-        // peut-être un document
         const findDoc = (items) => {
           for (const it of items) {
             if (it.type === 'document' && it.path === autoPlayVideo) return it;
@@ -809,11 +423,9 @@ function countVideos(items) {
   return n;
 }
 
+// ============ RENDU DES LEÇONS + DOCS MÉLANGÉS ============
 function renderLessons(items, container) {
-  const tree = items.filter(it => it.type === 'folder' || it.type === 'video');
-  const docs = items.filter(it => it.type === 'document');
-
-  for (const item of tree) {
+  for (const item of items) {
     if (item.type === 'folder') {
       const wrapper = document.createElement('div');
       wrapper.className = 'folder-wrapper';
@@ -850,27 +462,19 @@ function renderLessons(items, container) {
       el.querySelector('.fav-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(item.path); };
       el.onclick = () => playVideo(item);
       container.appendChild(el);
-    }
-  }
-
-  if (docs.length > 0) {
-    const sep = document.createElement('div');
-    sep.className = 'docs-separator';
-    sep.textContent = '📄 Documents';
-    container.appendChild(sep);
-    docs.forEach(doc => {
+    } else if (item.type === 'document') {
       const el = document.createElement('div');
       el.className = 'doc-item';
-      el.dataset.path = doc.path;
-      el.innerHTML = `<span class="doc-icon">📄</span><span class="doc-name">${escapeHtml(doc.name)}</span>`;
-      el.onclick = () => openDocument(doc);
+      el.dataset.path = item.path;
+      el.innerHTML = `<span class="doc-icon">📄</span><span class="doc-name">${escapeHtml(item.name)}</span>`;
+      el.onclick = () => openDocument(item);
       container.appendChild(el);
-    });
+    }
   }
 }
 
 function expandParentFolders(videoPath) {
-  const lessonEl = document.querySelector(`.lesson[data-path="${cssEscape(videoPath)}"]`);
+  const lessonEl = document.querySelector(`.lesson[data-path="${cssEscape(videoPath)}"], .doc-item[data-path="${cssEscape(videoPath)}"]`);
   if (!lessonEl) return;
   let el = lessonEl.parentElement;
   while (el) {
@@ -886,7 +490,6 @@ function expandParentFolders(videoPath) {
 // ============ PLAYER ============
 async function playVideo(item) {
   cancelAutoNext();
-  // Fermer le PDF si ouvert
   document.querySelector('.player-wrap').classList.remove('pdf-active');
   document.getElementById('pdf-viewer').src = 'about:blank';
   document.getElementById('back-to-video-btn').style.display = 'none';
@@ -1063,13 +666,12 @@ document.getElementById('an-play').onclick = () => {
 };
 document.getElementById('an-cancel').onclick = () => cancelAutoNext();
 
-// ============ RACCOURCIS CLAVIER ============
+// ============ RACCOURCIS ============
 document.addEventListener('keydown', (e) => {
   const tag = (e.target.tagName || '').toLowerCase();
   if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
   const courseView = document.getElementById('view-course');
   if (!courseView.classList.contains('active')) return;
-  // Ne pas interférer si le PDF est ouvert
   if (document.querySelector('.player-wrap').classList.contains('pdf-active')) return;
 
   switch (e.key) {
@@ -1183,7 +785,7 @@ document.addEventListener('click', (e) => {
   if (!subtitleMenu.contains(e.target) && e.target !== subtitleBtn) subtitleMenu.classList.remove('open');
 });
 
-// ============ MARQUER TERMINÉ / QUIZ ============
+// ============ TERMINÉ / QUIZ ============
 function updateCompleteBtn() {
   completeBtn.textContent = currentCompleted ? '↺ Non terminé' : '✅ Marquer terminé';
   completeBtn.style.background = currentCompleted ? '#4ade80' : '';
@@ -1410,5 +1012,3 @@ document.getElementById('course-back').onclick = () => history.back();
   }
 })();
 </script>
-</body>
-</html>

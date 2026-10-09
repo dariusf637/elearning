@@ -299,7 +299,7 @@ function extractLeadingNumber(name) {
   const base = name.replace(/\.[^.]+$/, '');
   const patterns = [
     /^(\d+(?:\.\d+)*)\s*[-–_.\):]\s*/,
-    /^(?:chapitre|chapter|section|le[çc]on|lesson|part|partie|module|unit|unité|s[ée]ance|semaine|week|cours|course|video|vidéo)\s+(\d+(?:\.\d+)*)/i,
+    /^(?:chapitre|chapter|section|le[çc]on|lesson|part|partie|module|unit|unité|s[ée]ance|semaine|week|cours|course|video|vidéo|document|doc|annexe|annex)\s+(\d+(?:\.\d+)*)/i,
     /^(\d+(?:\.\d+)*)\s+/,
   ];
   for (const p of patterns) {
@@ -322,11 +322,13 @@ function getKwPriority(name) {
   }
   return 25;
 }
+
+// Tri : dossiers d'abord, puis vidéos ET documents mélangés par numéro/nom
 function smartCompare(a, b) {
-  if (a.type !== b.type) {
-    const order = { folder: 0, video: 1, document: 2 };
-    return (order[a.type] ?? 3) - (order[b.type] ?? 3);
-  }
+  const aIsFolder = a.type === 'folder';
+  const bIsFolder = b.type === 'folder';
+  if (aIsFolder !== bIsFolder) return aIsFolder ? -1 : 1;
+
   const an = extractLeadingNumber(a.name), bn = extractLeadingNumber(b.name);
   if (an && bn) {
     const len = Math.max(an.length, bn.length);
@@ -543,18 +545,14 @@ app.get('/api/stream/*', auth, (req, res) => {
   }
 });
 
-// ============ DOCUMENTS (PDF) ============
+// ============ DOCUMENTS ============
 app.get('/api/document/*', auth, (req, res) => {
   const rel = decodeURIComponent(req.params[0]);
   const resolved = path.resolve(path.join(MEDIA_ROOT, rel));
   const root = path.resolve(MEDIA_ROOT);
   if (!resolved.startsWith(root) || !fs.existsSync(resolved)) return res.status(404).end();
   const ext = path.extname(resolved).toLowerCase();
-  const mimes = {
-    '.pdf': 'application/pdf',
-    '.txt': 'text/plain; charset=utf-8',
-    '.md': 'text/plain; charset=utf-8'
-  };
+  const mimes = { '.pdf': 'application/pdf', '.txt': 'text/plain; charset=utf-8', '.md': 'text/plain; charset=utf-8' };
   const ct = mimes[ext] || 'application/octet-stream';
   res.setHeader('Content-Type', ct);
   res.setHeader('Content-Disposition', 'inline');
