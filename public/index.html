@@ -9,14 +9,26 @@
   html, body { height: 100%; }
   body { font-family: system-ui, -apple-system, sans-serif; background: #0f0f1a; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-  #navbar { min-height: 56px; background: #1a1a2e; border-bottom: 1px solid #222; display: flex; align-items: center; padding: 0 16px; gap: 16px; flex-shrink: 0; flex-wrap: nowrap; }
+  #navbar { min-height: 56px; background: #1a1a2e; border-bottom: 1px solid #222; display: flex; align-items: center; padding: 0 16px; gap: 14px; flex-shrink: 0; flex-wrap: nowrap; }
   #navbar .brand { color: #e94560; font-weight: 700; font-size: 16px; white-space: nowrap; }
-  #navbar .nav-links { display: flex; gap: 4px; flex: 1; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #navbar .search-box { position: relative; flex: 1; max-width: 320px; }
+  #navbar .search-box input { width: 100%; padding: 7px 12px 7px 30px; background: #0f0f1a; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 13px; }
+  #navbar .search-box input:focus { outline: none; border-color: #e94560; }
+  #navbar .search-box::before { content: '🔍'; position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 12px; opacity: 0.6; }
+  #navbar .search-results { position: absolute; top: 100%; left: 0; right: 0; margin-top: 6px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; max-height: 400px; overflow-y: auto; display: none; z-index: 50; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+  #navbar .search-results.open { display: block; }
+  #navbar .search-results .sr-cat { padding: 8px 12px 4px; font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+  #navbar .search-results .sr-item { padding: 8px 12px; cursor: pointer; font-size: 13px; border-radius: 4px; margin: 2px 4px; }
+  #navbar .search-results .sr-item:hover { background: #16213e; }
+  #navbar .search-results .sr-item .sr-sub { font-size: 10px; color: #666; margin-top: 2px; }
+  #navbar .search-results .sr-empty { padding: 16px; font-size: 12px; color: #666; text-align: center; }
+
+  #navbar .nav-links { display: flex; gap: 2px; overflow-x: auto; -webkit-overflow-scrolling: touch; flex-shrink: 0; }
   #navbar .nav-links::-webkit-scrollbar { display: none; }
   #navbar .nav-links a { color: #999; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
   #navbar .nav-links a:hover { color: #fff; background: #16213e; }
   #navbar .nav-links a.active { color: #fff; background: #16213e; }
-  #navbar .nav-user { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #999; flex-shrink: 0; }
+  #navbar .nav-user { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #999; flex-shrink: 0; margin-left: auto; }
   #navbar .nav-user .role-badge { background: #e94560; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
   #navbar button { background: none; border: 1px solid #333; color: #aaa; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; white-space: nowrap; }
   #navbar button:hover { border-color: #e94560; color: #e94560; }
@@ -42,10 +54,9 @@
   .card .card-percent .lessons-done { color: #888; font-weight: 400; font-size: 10px; }
   .card .card-play { position: absolute; top: 12px; right: 12px; background: #e94560; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
   .card .card-play.done { background: #4ade80; color: #000; }
-  .card .card-meta-course { color: #666; font-size: 10px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #222; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .course-layout { display: flex; height: 100%; }
-  .course-sidebar { width: 360px; background: #1a1a2e; display: flex; flex-direction: column; border-right: 1px solid #222; flex-shrink: 0; }
+  .course-sidebar { width: 380px; background: #1a1a2e; display: flex; flex-direction: column; border-right: 1px solid #222; flex-shrink: 0; }
   .course-sidebar .course-header { padding: 12px 16px; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 10px; }
   .course-sidebar .course-header button { background: #333; border: none; color: #fff; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap; }
   .course-sidebar .course-header button:hover { background: #e94560; }
@@ -55,12 +66,24 @@
   .player-wrap { flex: 1; position: relative; background: #000; min-height: 200px; }
   video { width: 100%; height: 100%; background: #000; outline: none; }
   video::cue { background: rgba(0,0,0,0.75); color: #fff; font-size: 22px; line-height: 1.4; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); }
-  #resume-toast { position: absolute; bottom: 20px; left: 20px; background: rgba(233,69,96,0.95); padding: 10px 16px; border-radius: 6px; font-size: 13px; display: none; }
+  #resume-toast { position: absolute; bottom: 20px; left: 20px; background: rgba(233,69,96,0.95); padding: 10px 16px; border-radius: 6px; font-size: 13px; display: none; z-index: 3; }
+
+  /* PDF viewer */
+  #pdf-viewer { width: 100%; height: 100%; background: #2a2a3e; border: none; display: none; }
+  .pdf-active #player { display: none; }
+  .pdf-active #pdf-viewer { display: block; }
+
+  #auto-next { position: absolute; bottom: 70px; right: 20px; background: rgba(26,26,46,0.95); border: 1px solid #333; border-radius: 8px; padding: 14px 16px; font-size: 13px; display: none; z-index: 4; min-width: 260px; }
+  #auto-next .an-title { color: #fff; margin-bottom: 6px; font-weight: 600; }
+  #auto-next .an-name { color: #aaa; font-size: 12px; margin-bottom: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #auto-next .an-actions { display: flex; gap: 8px; }
+
   .player-info { padding: 10px 16px; background: #1a1a2e; font-size: 13px; color: #aaa; display: flex; justify-content: space-between; align-items: center; gap: 10px; position: relative; flex-wrap: wrap; }
   .player-info .info-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 150px; }
-  .player-info .info-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .player-info .info-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
   .btn { padding: 6px 12px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap; }
   .btn:hover { background: #e94560; }
+  .speed-select { padding: 5px 8px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
   .folder-wrapper { margin: 2px 0; }
   .folder-header { padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 6px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; user-select: none; transition: background 0.15s; }
@@ -73,12 +96,24 @@
   .folder-children { margin-left: 10px; border-left: 1px solid #2a2a44; padding-left: 4px; overflow: hidden; }
   .folder-children.collapsed { display: none; }
 
-  .lesson { padding: 11px 14px; cursor: pointer; font-size: 13px; border-radius: 6px; margin: 2px 0; display: flex; flex-direction: column; gap: 4px; }
+  .lesson { padding: 11px 14px; cursor: pointer; font-size: 13px; border-radius: 6px; margin: 2px 0; display: flex; flex-direction: column; gap: 4px; position: relative; }
   .lesson:hover { background: #16213e; }
   .lesson.active { background: #e94560; }
   .lesson .title-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .lesson .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lesson .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
   .lesson .cc-badge { font-size: 9px; background: #4ade80; color: #000; padding: 1px 5px; border-radius: 3px; font-weight: 600; flex-shrink: 0; }
+  .lesson .quiz-badge { font-size: 9px; background: #f59e0b; color: #000; padding: 1px 5px; border-radius: 3px; font-weight: 600; flex-shrink: 0; }
+  .lesson .fav-btn { font-size: 13px; cursor: pointer; padding: 2px 4px; border-radius: 3px; opacity: 0.4; flex-shrink: 0; }
+  .lesson .fav-btn:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+  .lesson .fav-btn.active { opacity: 1; }
+
+  /* Documents */
+  .docs-separator { padding: 14px 12px 4px; font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1px; border-top: 1px solid #2a2a44; margin-top: 10px; }
+  .doc-item { padding: 11px 14px; cursor: pointer; font-size: 13px; border-radius: 6px; margin: 2px 0; display: flex; align-items: center; gap: 8px; color: #ccc; }
+  .doc-item:hover { background: #16213e; color: #fff; }
+  .doc-item.active { background: #e94560; color: #fff; }
+  .doc-item .doc-icon { flex-shrink: 0; font-size: 14px; }
+  .doc-item .doc-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 
   #subtitle-menu { position: absolute; bottom: 100%; right: 12px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; padding: 6px; min-width: 200px; display: none; z-index: 10; max-height: 60vh; overflow-y: auto; }
   #subtitle-menu.open { display: block; }
@@ -113,14 +148,40 @@
 
   .empty { padding: 30px 16px; color: #666; font-size: 13px; text-align: center; }
 
+  .quiz-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+  .quiz-overlay.open { display: flex; }
+  .quiz-modal { background: #1a1a2e; border: 1px solid #333; border-radius: 12px; width: 100%; max-width: 600px; max-height: 85vh; display: flex; flex-direction: column; }
+  .quiz-modal .quiz-header { padding: 18px 22px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+  .quiz-modal .quiz-header h2 { font-size: 16px; color: #e94560; margin: 0; }
+  .quiz-modal .quiz-close { background: none; border: none; color: #888; font-size: 22px; cursor: pointer; padding: 0 6px; }
+  .quiz-modal .quiz-close:hover { color: #e94560; }
+  .quiz-modal .quiz-body { padding: 20px 22px; overflow-y: auto; flex: 1; }
+  .quiz-q { margin-bottom: 22px; }
+  .quiz-q .q-text { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+  .quiz-q .q-num { color: #e94560; margin-right: 6px; }
+  .quiz-q .q-option { display: flex; align-items: center; padding: 9px 12px; background: #0f0f1a; border: 1px solid #333; border-radius: 6px; margin: 6px 0; cursor: pointer; font-size: 13px; transition: border-color 0.15s; }
+  .quiz-q .q-option:hover { border-color: #e94560; }
+  .quiz-q .q-option.selected { border-color: #e94560; background: rgba(233,69,96,0.1); }
+  .quiz-q .q-option.correct { border-color: #4ade80; background: rgba(74,222,128,0.1); }
+  .quiz-q .q-option.wrong { border-color: #e94560; background: rgba(233,69,96,0.15); }
+  .quiz-q .q-option input { margin-right: 10px; }
+  .quiz-q .q-explanation { font-size: 12px; color: #4ade80; margin-top: 8px; padding: 8px 12px; background: rgba(74,222,128,0.1); border-radius: 4px; display: none; }
+  .quiz-q .q-explanation.show { display: block; }
+  .quiz-modal .quiz-footer { padding: 16px 22px; border-top: 1px solid #222; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .quiz-result { font-size: 14px; }
+  .quiz-result.pass { color: #4ade80; }
+  .quiz-result.fail { color: #e94560; }
+
   @media (max-width: 900px) {
     .course-sidebar { width: 280px; }
     .page-container { padding: 20px; }
+    #navbar .search-box { max-width: 180px; }
   }
   @media (max-width: 700px) {
     #navbar { flex-wrap: wrap; padding: 8px 12px; gap: 8px; height: auto; min-height: 52px; }
     #navbar .brand { font-size: 14px; }
-    #navbar .nav-user { order: 2; margin-left: auto; }
+    #navbar .search-box { order: 4; width: 100%; max-width: none; }
+    #navbar .nav-user { order: 2; }
     #navbar .nav-links { order: 3; width: 100%; justify-content: flex-start; gap: 2px; border-top: 1px solid #222; padding-top: 6px; margin-top: 4px; }
     #navbar .nav-links a { font-size: 12px; padding: 6px 10px; }
     #navbar .nav-user #nav-username { display: none; }
@@ -145,6 +206,7 @@
     .admin-form button { width: 100%; }
     .user-row { flex-direction: column; align-items: flex-start; }
     .user-row .actions { width: 100%; justify-content: flex-start; }
+    #auto-next { left: 12px; right: 12px; bottom: 60px; min-width: 0; }
   }
   @media (max-width: 400px) {
     #navbar .brand { font-size: 13px; }
@@ -158,15 +220,20 @@
 
 <nav id="navbar">
   <div class="brand">📚 Ma Plateforme</div>
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="Rechercher un cours, une leçon…" autocomplete="off">
+    <div class="search-results" id="search-results"></div>
+  </div>
   <div class="nav-user">
     <span id="nav-username"></span>
     <button id="btn-logout">Déconnexion</button>
   </div>
   <div class="nav-links">
     <a href="#/home" data-nav="home">Accueil</a>
-    <a href="#/courses" data-nav="courses">Tous les cours</a>
+    <a href="#/courses" data-nav="courses">Cours</a>
     <a href="#/in-progress" data-nav="in-progress">En cours</a>
     <a href="#/completed" data-nav="completed">Terminés</a>
+    <a href="#/favorites" data-nav="favorites">⭐ Favoris</a>
     <a href="#/admin" data-nav="admin" id="nav-admin" style="display:none">Admin</a>
   </div>
 </nav>
@@ -191,10 +258,7 @@
         <div id="home-resume-grid" class="card-grid"></div>
       </section>
       <section id="home-completed-section">
-        <h2>
-          ✅ Cours terminés
-          <span id="home-completed-action"></span>
-        </h2>
+        <h2>✅ Cours terminés <span id="home-completed-action"></span></h2>
         <div id="home-completed-grid" class="card-grid"></div>
       </section>
       <section>
@@ -225,6 +289,13 @@
     </div>
   </div>
 
+  <div id="view-favorites" class="view">
+    <div class="page-container">
+      <h1>⭐ Favoris <span id="favorites-count" style="font-size:14px;color:#666;font-weight:400;"></span></h1>
+      <div id="favorites-grid" class="card-grid"></div>
+    </div>
+  </div>
+
   <div id="view-course" class="view">
     <div class="course-layout">
       <aside class="course-sidebar">
@@ -237,14 +308,32 @@
       <div class="course-main">
         <div class="player-wrap">
           <video id="player" controls preload="metadata" playsinline></video>
+          <iframe id="pdf-viewer" title="Document"></iframe>
           <div id="resume-toast"></div>
+          <div id="auto-next">
+            <div class="an-title">Leçon suivante dans <span id="an-count">5</span>s</div>
+            <div class="an-name" id="an-name"></div>
+            <div class="an-actions">
+              <button class="btn" id="an-play">▶ Lire maintenant</button>
+              <button class="btn" id="an-cancel">Annuler</button>
+            </div>
+          </div>
         </div>
         <div class="player-info">
           <span class="info-text" id="info-text">Sélectionnez une leçon</span>
           <div class="info-actions">
+            <button class="btn" id="back-to-video-btn" style="display:none;">▶ Retour à la vidéo</button>
+            <select class="speed-select" id="speed-select" title="Vitesse">
+              <option value="0.5">0.5x</option>
+              <option value="0.75">0.75x</option>
+              <option value="1" selected>1x</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+              <option value="1.75">1.75x</option>
+              <option value="2">2x</option>
+            </select>
             <button class="btn" id="subtitle-btn" style="display:none;">💬 Sous-titres</button>
             <button class="btn" id="complete-btn" style="display:none;">✅ Marquer terminé</button>
-            <button class="btn" id="archive-btn" style="display:none;">Archiver</button>
           </div>
           <div id="subtitle-menu"></div>
         </div>
@@ -277,6 +366,23 @@
 
 </main>
 
+<div class="quiz-overlay" id="quiz-overlay">
+  <div class="quiz-modal">
+    <div class="quiz-header">
+      <h2>📝 Quiz : <span id="quiz-lesson-name"></span></h2>
+      <button class="quiz-close" id="quiz-close">×</button>
+    </div>
+    <div class="quiz-body" id="quiz-body"></div>
+    <div class="quiz-footer">
+      <span class="quiz-result" id="quiz-result"></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" id="quiz-validate">Valider</button>
+        <button class="btn" id="quiz-close-btn" style="display:none;">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (async () => {
   try {
@@ -292,32 +398,38 @@ let userRole = localStorage.getItem('userRole') || 'user';
 let currentVideo = null;
 let currentSubtitles = [];
 let currentVideoPath = null;
+let currentVideoData = null;
+let currentCourseVideos = [];
 let saveTimer = null;
-let currentArchived = false;
 let currentCompleted = false;
 let currentCoursePath = null;
+let favoritesSet = new Set();
+let autoNextTimer = null;
+let autoNextTarget = null;
+let currentQuiz = null;
+let currentQuizAnswers = [];
 
 const HOME_COMPLETED_LIMIT = 4;
 
 const player = document.getElementById('player');
 const subtitleBtn = document.getElementById('subtitle-btn');
 const subtitleMenu = document.getElementById('subtitle-menu');
-const archiveBtn = document.getElementById('archive-btn');
 const completeBtn = document.getElementById('complete-btn');
+const speedSelect = document.getElementById('speed-select');
 const infoText = document.getElementById('info-text');
 const resumeToast = document.getElementById('resume-toast');
+const autoNextEl = document.getElementById('auto-next');
+const anCount = document.getElementById('an-count');
+const anName = document.getElementById('an-name');
 
 function navigate(hash) { window.location.hash = hash; }
 
 function showView(name) {
-  document.querySelectorAll('.view').forEach(v => {
-    v.classList.remove('active');
-    v.style.display = 'none';
-  });
+  document.querySelectorAll('.view').forEach(v => { v.classList.remove('active'); v.style.display = 'none'; });
   const view = document.getElementById('view-' + name);
   view.classList.add('active');
   view.style.display = (name === 'login') ? 'flex' : 'block';
-  if (name !== 'course') { stopPlayer(); }
+  if (name !== 'course') { stopPlayer(); cancelAutoNext(); }
 }
 
 function router() {
@@ -344,6 +456,10 @@ function router() {
     showView('completed');
     document.querySelector('[data-nav="completed"]').classList.add('active');
     loadCompletedPage();
+  } else if (hash.startsWith('#/favorites')) {
+    showView('favorites');
+    document.querySelector('[data-nav="favorites"]').classList.add('active');
+    loadFavoritesPage();
   } else if (hash.startsWith('#/admin')) {
     if (userRole !== 'admin') { navigate('#/home'); return; }
     showView('admin');
@@ -369,28 +485,19 @@ async function doLogin() {
   err.textContent = '';
   try {
     const r = await fetch('/api/login', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ username: u, password: p })
     });
-    if (!r.ok) {
-      const d = await r.json();
-      err.textContent = d.error || 'Erreur de connexion';
-      return;
-    }
+    if (!r.ok) { const d = await r.json(); err.textContent = d.error || 'Erreur'; return; }
     const data = await r.json();
-    token = data.token;
-    username = data.username;
-    userRole = data.role;
+    token = data.token; username = data.username; userRole = data.role;
     localStorage.setItem('token', token);
     localStorage.setItem('username', username);
     localStorage.setItem('userRole', userRole);
+    await loadFavoritesKeys();
     setupNavbar();
-    if (!window.location.hash || window.location.hash === '#' || window.location.hash === '#/') {
-      navigate('#/home');
-    } else {
-      router();
-    }
+    if (!window.location.hash || window.location.hash === '#') navigate('#/home');
+    else router();
   } catch { err.textContent = 'Erreur réseau'; }
 }
 
@@ -404,23 +511,92 @@ document.getElementById('btn-logout').onclick = () => {
 
 function setupNavbar() {
   document.getElementById('nav-username').textContent = username || '';
-  const adminLink = document.getElementById('nav-admin');
   if (userRole === 'admin') {
-    adminLink.style.display = 'inline-block';
+    document.getElementById('nav-admin').style.display = 'inline-block';
     document.getElementById('nav-username').innerHTML = `${escapeHtml(username)} <span class="role-badge">ADMIN</span>`;
   }
   document.getElementById('home-username').textContent = username || '';
 }
 
-// ============ CARTE DE COURS (agrégée) ============
+async function loadFavoritesKeys() {
+  try {
+    const r = await fetch('/api/favorites/keys', { headers: { Authorization: 'Bearer ' + token } });
+    const keys = await r.json();
+    favoritesSet = new Set(keys);
+  } catch {}
+}
+
+// ============ RECHERCHE ============
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+let searchTimeout = null;
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  const q = searchInput.value.trim();
+  if (q.length < 2) { searchResults.classList.remove('open'); return; }
+  searchTimeout = setTimeout(() => doSearch(q), 250);
+});
+
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { searchResults.classList.remove('open'); searchInput.blur(); }
+});
+
+document.addEventListener('click', (e) => {
+  if (!searchResults.contains(e.target) && e.target !== searchInput) searchResults.classList.remove('open');
+});
+
+async function doSearch(q) {
+  try {
+    const r = await fetch('/api/search?q=' + encodeURIComponent(q), { headers: { Authorization: 'Bearer ' + token } });
+    const data = await r.json();
+    searchResults.innerHTML = '';
+    if (!data.courses.length && !data.lessons.length) {
+      searchResults.innerHTML = '<div class="sr-empty">Aucun résultat pour "' + escapeHtml(q) + '"</div>';
+      searchResults.classList.add('open');
+      return;
+    }
+    if (data.courses.length) {
+      const cat = document.createElement('div');
+      cat.className = 'sr-cat'; cat.textContent = 'Cours';
+      searchResults.appendChild(cat);
+      data.courses.forEach(c => {
+        const el = document.createElement('div');
+        el.className = 'sr-item';
+        el.innerHTML = `📁 ${escapeHtml(c.name)}`;
+        el.onclick = () => { searchResults.classList.remove('open'); searchInput.value = ''; navigate('#/course/' + encodeURIComponent(c.path)); };
+        searchResults.appendChild(el);
+      });
+    }
+    if (data.lessons.length) {
+      const cat = document.createElement('div');
+      cat.className = 'sr-cat'; cat.textContent = 'Leçons';
+      searchResults.appendChild(cat);
+      data.lessons.forEach(l => {
+        const el = document.createElement('div');
+        el.className = 'sr-item';
+        const icon = l.isDoc ? '📄' : '▶';
+        el.innerHTML = `${icon} ${escapeHtml(l.name)}<div class="sr-sub">${escapeHtml(l.course || '')}</div>`;
+        el.onclick = () => {
+          searchResults.classList.remove('open');
+          searchInput.value = '';
+          navigate('#/course/' + encodeURIComponent(l.path.split('/')[0]) + '?play=' + encodeURIComponent(l.path));
+        };
+        searchResults.appendChild(el);
+      });
+    }
+    searchResults.classList.add('open');
+  } catch {}
+}
+
+// ============ CARTES ============
 function renderCourseProgressCard(c, opts = {}) {
   const el = document.createElement('div');
   el.className = 'card';
   const playIcon = opts.done ? '<div class="card-play done">✓</div>' :
                    opts.resume ? '<div class="card-play">▶</div>' : '';
   const percentLabel = opts.done ? '100% · Terminé' :
-                       opts.resume ? `${c.percent}% · Reprendre` :
-                       `${c.percent}%`;
+                       opts.resume ? `${c.percent}% · Reprendre` : `${c.percent}%`;
   el.innerHTML = `
     ${playIcon}
     <div class="card-title">${escapeHtml(c.name)}</div>
@@ -438,26 +614,38 @@ function renderCourseProgressCard(c, opts = {}) {
   return el;
 }
 
+function renderLessonFavoriteCard(v) {
+  const name = v.video_path.split('/').pop();
+  const course = v.video_path.split('/')[0];
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.innerHTML = `
+    <div class="card-play" style="background:#f59e0b;">⭐</div>
+    <div class="card-title">${escapeHtml(name)}</div>
+    <div class="card-meta">${escapeHtml(course)}</div>
+    <div class="card-bar"><div style="width:${v.percent}%"></div></div>
+    <div class="card-percent">${v.percent}%${v.completed ? ' · Terminé' : ''}</div>
+    <div style="margin-top:10px;">
+      <button class="btn" style="width:100%;" onclick="event.stopPropagation(); removeFavorite('${escapeJs(v.video_path)}')">Retirer des favoris</button>
+    </div>
+  `;
+  el.onclick = () => navigate('#/course/' + encodeURIComponent(course) + '?play=' + encodeURIComponent(v.video_path));
+  return el;
+}
+
+// ============ HOME ============
 async function loadHome() {
-  // Reprendre
   try {
     const r = await fetch('/api/resume', { headers: { Authorization: 'Bearer ' + token } });
     const resume = await r.json();
     const grid = document.getElementById('home-resume-grid');
     grid.innerHTML = '';
-    if (resume.length === 0) {
-      grid.innerHTML = '<div class="empty">Aucun cours en cours. Lancez une vidéo pour la voir ici.</div>';
-    } else {
-      resume.forEach(c => grid.appendChild(renderCourseProgressCard(c, { resume: true })));
-    }
+    if (resume.length === 0) grid.innerHTML = '<div class="empty">Aucun cours en cours. Lancez une vidéo pour la voir ici.</div>';
+    else resume.forEach(c => grid.appendChild(renderCourseProgressCard(c, { resume: true })));
   } catch {
     document.getElementById('home-resume-grid').innerHTML = '<div class="empty">Erreur de chargement</div>';
   }
-
-  // Cours terminés (limité)
   await loadCompletedLimited();
-
-  // Mes cours
   loadCoursesGrid('home-courses-grid');
 }
 
@@ -467,14 +655,9 @@ async function loadCompletedLimited() {
   try {
     const r = await fetch('/api/completed', { headers: { Authorization: 'Bearer ' + token } });
     const all = await r.json();
-    grid.innerHTML = '';
-    action.innerHTML = '';
-    if (all.length === 0) {
-      grid.innerHTML = '<div class="empty">Aucun cours terminé. Complétez un cours pour le voir ici.</div>';
-      return;
-    }
-    const limited = all.slice(0, HOME_COMPLETED_LIMIT);
-    limited.forEach(c => grid.appendChild(renderCourseProgressCard(c, { done: true })));
+    grid.innerHTML = ''; action.innerHTML = '';
+    if (all.length === 0) { grid.innerHTML = '<div class="empty">Aucun cours terminé. Complétez un cours pour le voir ici.</div>'; return; }
+    all.slice(0, HOME_COMPLETED_LIMIT).forEach(c => grid.appendChild(renderCourseProgressCard(c, { done: true })));
     if (all.length > HOME_COMPLETED_LIMIT) {
       const btn = document.createElement('button');
       btn.className = 'section-action';
@@ -487,9 +670,7 @@ async function loadCompletedLimited() {
       count.textContent = `(${all.length})`;
       action.appendChild(count);
     }
-  } catch {
-    grid.innerHTML = '<div class="empty">Erreur de chargement</div>';
-  }
+  } catch { grid.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 async function loadCompletedPage() {
@@ -500,16 +681,10 @@ async function loadCompletedPage() {
     const r = await fetch('/api/completed', { headers: { Authorization: 'Bearer ' + token } });
     const rows = await r.json();
     grid.innerHTML = '';
-    if (rows.length === 0) {
-      counter.textContent = '';
-      grid.innerHTML = '<div class="empty">Aucun cours terminé.</div>';
-      return;
-    }
+    if (!rows.length) { counter.textContent = ''; grid.innerHTML = '<div class="empty">Aucun cours terminé.</div>'; return; }
     counter.textContent = `(${rows.length})`;
     rows.forEach(c => grid.appendChild(renderCourseProgressCard(c, { done: true })));
-  } catch {
-    grid.innerHTML = '<div class="empty">Erreur de chargement</div>';
-  }
+  } catch { grid.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 async function loadInProgressPage() {
@@ -520,16 +695,24 @@ async function loadInProgressPage() {
     const r = await fetch('/api/in-progress', { headers: { Authorization: 'Bearer ' + token } });
     const rows = await r.json();
     grid.innerHTML = '';
-    if (rows.length === 0) {
-      counter.textContent = '';
-      grid.innerHTML = '<div class="empty">Aucun cours en cours.</div>';
-      return;
-    }
+    if (!rows.length) { counter.textContent = ''; grid.innerHTML = '<div class="empty">Aucun cours en cours.</div>'; return; }
     counter.textContent = `(${rows.length})`;
     rows.forEach(c => grid.appendChild(renderCourseProgressCard(c, { resume: true })));
-  } catch {
-    grid.innerHTML = '<div class="empty">Erreur de chargement</div>';
-  }
+  } catch { grid.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+}
+
+async function loadFavoritesPage() {
+  const grid = document.getElementById('favorites-grid');
+  const counter = document.getElementById('favorites-count');
+  grid.innerHTML = '<div class="empty">Chargement…</div>';
+  try {
+    const r = await fetch('/api/favorites', { headers: { Authorization: 'Bearer ' + token } });
+    const rows = await r.json();
+    grid.innerHTML = '';
+    if (!rows.length) { counter.textContent = ''; grid.innerHTML = '<div class="empty">Aucun favori. Cliquez sur ⭐ à côté d\'une leçon pour l\'ajouter.</div>'; return; }
+    counter.textContent = `(${rows.length})`;
+    rows.forEach(v => grid.appendChild(renderLessonFavoriteCard(v)));
+  } catch { grid.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 async function loadCoursesGrid(targetId) {
@@ -539,44 +722,81 @@ async function loadCoursesGrid(targetId) {
     const r = await fetch('/api/courses/top', { headers: { Authorization: 'Bearer ' + token } });
     const courses = await r.json();
     grid.innerHTML = '';
-    if (!courses.length) {
-      grid.innerHTML = '<div class="empty">Aucun cours trouvé.<br>Vérifiez le montage Yandex.</div>';
-      return;
-    }
+    if (!courses.length) { grid.innerHTML = '<div class="empty">Aucun cours trouvé.</div>'; return; }
     courses.forEach(c => grid.appendChild(renderCourseProgressCard(c, { done: c.isFullyDone })));
-  } catch {
-    grid.innerHTML = '<div class="empty">Erreur de chargement</div>';
-  }
+  } catch { grid.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
+// ============ FAVORIS ============
+async function toggleFavorite(videoPath) {
+  const isFav = favoritesSet.has(videoPath);
+  try {
+    if (isFav) {
+      await fetch('/api/favorites', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ video_path: videoPath })
+      });
+      favoritesSet.delete(videoPath);
+    } else {
+      await fetch('/api/favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ video_path: videoPath })
+      });
+      favoritesSet.add(videoPath);
+    }
+    document.querySelectorAll(`.lesson[data-path="${cssEscape(videoPath)}"] .fav-btn`)
+      .forEach(el => {
+        const active = favoritesSet.has(videoPath);
+        el.classList.toggle('active', active);
+        el.textContent = active ? '⭐' : '☆';
+      });
+  } catch {}
+}
+
+async function removeFavorite(videoPath) {
+  await toggleFavorite(videoPath);
+  loadFavoritesPage();
+}
+
+// ============ COURSE DETAIL ============
 async function loadCourseDetail(coursePath, autoPlayVideo) {
   currentCoursePath = coursePath;
   document.getElementById('course-title').textContent = coursePath.split('/').pop();
   const lessons = document.getElementById('course-lessons');
   lessons.innerHTML = '<div class="empty">Chargement…</div>';
   try {
-    const r = await fetch('/api/courses/detail/' + encodeURIComponent(coursePath), {
-      headers: { Authorization: 'Bearer ' + token }
-    });
+    const r = await fetch('/api/courses/detail/' + encodeURIComponent(coursePath), { headers: { Authorization: 'Bearer ' + token } });
     const items = await r.json();
     lessons.innerHTML = '';
-    if (!items.length) { lessons.innerHTML = '<div class="empty">Aucune leçon dans ce cours.</div>'; return; }
+    if (!items.length) { lessons.innerHTML = '<div class="empty">Aucune leçon.</div>'; return; }
+    currentCourseVideos = [];
+    collectVideos(items, currentCourseVideos);
     renderLessons(items, lessons);
     if (autoPlayVideo) {
-      const allVideos = [];
-      collectVideos(items, allVideos);
-      const target = allVideos.find(v => v.path === autoPlayVideo);
+      const target = currentCourseVideos.find(v => v.path === autoPlayVideo);
       if (target) playVideo(target);
+      else {
+        // peut-être un document
+        const findDoc = (items) => {
+          for (const it of items) {
+            if (it.type === 'document' && it.path === autoPlayVideo) return it;
+            if (it.type === 'folder') { const r = findDoc(it.children); if (r) return r; }
+          }
+          return null;
+        };
+        const doc = findDoc(items);
+        if (doc) openDocument(doc);
+      }
     }
-  } catch {
-    lessons.innerHTML = '<div class="empty">Erreur de chargement</div>';
-  }
+  } catch { lessons.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 function collectVideos(items, out) {
   for (const it of items) {
     if (it.type === 'folder') collectVideos(it.children, out);
-    else out.push(it);
+    else if (it.type === 'video') out.push(it);
   }
 }
 
@@ -584,24 +804,23 @@ function countVideos(items) {
   let n = 0;
   for (const it of items) {
     if (it.type === 'folder') n += countVideos(it.children);
-    else n++;
+    else if (it.type === 'video') n++;
   }
   return n;
 }
 
 function renderLessons(items, container) {
-  for (const item of items) {
+  const tree = items.filter(it => it.type === 'folder' || it.type === 'video');
+  const docs = items.filter(it => it.type === 'document');
+
+  for (const item of tree) {
     if (item.type === 'folder') {
       const wrapper = document.createElement('div');
       wrapper.className = 'folder-wrapper';
       const count = countVideos(item.children);
       const header = document.createElement('div');
       header.className = 'folder-header';
-      header.innerHTML = `
-        <span class="folder-chevron">▶</span>
-        <span class="folder-name">${escapeHtml(item.name)}</span>
-        <span class="folder-count">${count}</span>
-      `;
+      header.innerHTML = `<span class="folder-chevron">▶</span><span class="folder-name">${escapeHtml(item.name)}</span><span class="folder-count">${count}</span>`;
       const children = document.createElement('div');
       children.className = 'folder-children collapsed';
       header.onclick = () => {
@@ -612,16 +831,41 @@ function renderLessons(items, container) {
       wrapper.appendChild(children);
       container.appendChild(wrapper);
       renderLessons(item.children, children);
-    } else {
+    } else if (item.type === 'video') {
       const el = document.createElement('div');
       el.className = 'lesson';
       el.dataset.path = item.path;
-      const ccBadge = item.subtitles && item.subtitles.length
-        ? `<span class="cc-badge">CC ${item.subtitles.length}</span>` : '';
-      el.innerHTML = `<div class="title-row"><span class="name">▶ ${escapeHtml(item.name)}</span>${ccBadge}</div>`;
+      const ccBadge = item.subtitles && item.subtitles.length ? `<span class="cc-badge">CC ${item.subtitles.length}</span>` : '';
+      const qzBadge = item.quiz ? `<span class="quiz-badge">📝</span>` : '';
+      const isFav = favoritesSet.has(item.path);
+      el.innerHTML = `
+        <div class="title-row">
+          <span class="name">▶ ${escapeHtml(item.name)}</span>
+          <span style="display:flex;gap:4px;align-items:center;">
+            ${ccBadge}${qzBadge}
+            <span class="fav-btn ${isFav ? 'active' : ''}" title="Favori">${isFav ? '⭐' : '☆'}</span>
+          </span>
+        </div>
+      `;
+      el.querySelector('.fav-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(item.path); };
       el.onclick = () => playVideo(item);
       container.appendChild(el);
     }
+  }
+
+  if (docs.length > 0) {
+    const sep = document.createElement('div');
+    sep.className = 'docs-separator';
+    sep.textContent = '📄 Documents';
+    container.appendChild(sep);
+    docs.forEach(doc => {
+      const el = document.createElement('div');
+      el.className = 'doc-item';
+      el.dataset.path = doc.path;
+      el.innerHTML = `<span class="doc-icon">📄</span><span class="doc-name">${escapeHtml(doc.name)}</span>`;
+      el.onclick = () => openDocument(doc);
+      container.appendChild(el);
+    });
   }
 }
 
@@ -633,41 +877,44 @@ function expandParentFolders(videoPath) {
     if (el.classList && el.classList.contains('folder-children')) {
       el.classList.remove('collapsed');
       const header = el.previousElementSibling;
-      if (header && header.classList.contains('folder-header')) {
-        header.classList.add('open');
-      }
+      if (header && header.classList.contains('folder-header')) header.classList.add('open');
     }
     el = el.parentElement;
   }
 }
 
+// ============ PLAYER ============
 async function playVideo(item) {
+  cancelAutoNext();
+  // Fermer le PDF si ouvert
+  document.querySelector('.player-wrap').classList.remove('pdf-active');
+  document.getElementById('pdf-viewer').src = 'about:blank';
+  document.getElementById('back-to-video-btn').style.display = 'none';
+  document.getElementById('speed-select').style.display = '';
+  document.querySelectorAll('.doc-item').forEach(e => e.classList.remove('active'));
+
   const videoPath = item.path;
   const displayName = item.name;
   currentVideo = videoPath;
   currentVideoPath = videoPath;
   currentSubtitles = item.subtitles || [];
+  currentVideoData = item;
 
   document.querySelectorAll('.lesson').forEach(e => e.classList.remove('active'));
   document.querySelectorAll(`.lesson[data-path="${cssEscape(videoPath)}"]`).forEach(e => e.classList.add('active'));
-
   expandParentFolders(videoPath);
 
   infoText.textContent = '⏳ Chargement…';
   resumeToast.style.display = 'none';
-  archiveBtn.style.display = 'none';
   completeBtn.style.display = 'none';
   subtitleBtn.style.display = 'none';
   subtitleMenu.classList.remove('open');
 
-  let progress = { position: 0, duration: 0, archived: 0, completed: 0 };
+  let progress = { position: 0, duration: 0, completed: 0 };
   try {
-    const r = await fetch('/api/progress/' + encodeURIComponent(videoPath), {
-      headers: { Authorization: 'Bearer ' + token }
-    });
+    const r = await fetch('/api/progress/' + encodeURIComponent(videoPath), { headers: { Authorization: 'Bearer ' + token } });
     progress = await r.json();
   } catch {}
-  currentArchived = !!progress.archived;
   currentCompleted = !!progress.completed;
 
   player.querySelectorAll('track').forEach(t => t.remove());
@@ -685,6 +932,8 @@ async function playVideo(item) {
   });
 
   player.src = '/api/stream/' + encodeURIComponent(videoPath) + '?token=' + encodeURIComponent(token);
+  player.playbackRate = parseFloat(localStorage.getItem('speed') || '1');
+  speedSelect.value = player.playbackRate.toString();
   player.load();
 
   player.onloadedmetadata = () => {
@@ -695,9 +944,7 @@ async function playVideo(item) {
       setTimeout(() => resumeToast.style.display = 'none', 3000);
     }
     infoText.textContent = displayName + ' — ' + formatTime(player.duration);
-    archiveBtn.style.display = 'inline-block';
     completeBtn.style.display = 'inline-block';
-    updateArchiveBtn();
     updateCompleteBtn();
 
     if (currentSubtitles.length > 0) {
@@ -708,11 +955,8 @@ async function playVideo(item) {
         if (savedLang === 'off') setSubtitleMode('off');
         else if (savedLang) {
           const idx = currentSubtitles.findIndex(s => s.lang === savedLang);
-          if (idx >= 0) enableTrack(idx);
-          else enableTrack(0);
-        } else {
-          enableTrack(0);
-        }
+          if (idx >= 0) enableTrack(idx); else enableTrack(0);
+        } else enableTrack(0);
       }, 100);
     }
   };
@@ -729,6 +973,156 @@ function stopPlayer() {
   try { player.pause(); } catch {}
 }
 
+player.addEventListener('pause', () => saveProgress());
+player.addEventListener('ended', async () => {
+  await saveProgress();
+  if (!currentCompleted) {
+    await markCompleted(currentVideo, true);
+    currentCompleted = true;
+    updateCompleteBtn();
+  }
+  scheduleAutoNext();
+});
+window.addEventListener('beforeunload', () => saveProgress(true));
+
+// ============ DOCUMENT VIEWER ============
+function openDocument(doc) {
+  cancelAutoNext();
+  stopPlayer();
+
+  document.querySelectorAll('.lesson, .doc-item').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll(`.doc-item[data-path="${cssEscape(doc.path)}"]`).forEach(e => e.classList.add('active'));
+
+  const wrap = document.querySelector('.player-wrap');
+  const pdfViewer = document.getElementById('pdf-viewer');
+  const backBtn = document.getElementById('back-to-video-btn');
+
+  wrap.classList.add('pdf-active');
+  pdfViewer.src = '/api/document/' + encodeURIComponent(doc.path) + '?token=' + encodeURIComponent(token);
+  backBtn.style.display = 'inline-block';
+
+  infoText.textContent = '📄 ' + doc.name;
+  document.getElementById('speed-select').style.display = 'none';
+  document.getElementById('complete-btn').style.display = 'none';
+  document.getElementById('subtitle-btn').style.display = 'none';
+}
+
+document.getElementById('back-to-video-btn').onclick = () => {
+  const wrap = document.querySelector('.player-wrap');
+  const pdfViewer = document.getElementById('pdf-viewer');
+  wrap.classList.remove('pdf-active');
+  pdfViewer.src = 'about:blank';
+  document.getElementById('back-to-video-btn').style.display = 'none';
+  document.getElementById('speed-select').style.display = '';
+  document.querySelectorAll('.doc-item').forEach(e => e.classList.remove('active'));
+  if (currentVideo) {
+    infoText.textContent = currentVideo.split('/').pop();
+    document.getElementById('complete-btn').style.display = 'inline-block';
+    if (currentSubtitles.length > 0) document.getElementById('subtitle-btn').style.display = 'inline-block';
+  } else {
+    infoText.textContent = 'Sélectionnez une leçon';
+  }
+};
+
+// ============ VITESSE ============
+speedSelect.onchange = () => {
+  const s = parseFloat(speedSelect.value);
+  player.playbackRate = s;
+  localStorage.setItem('speed', s.toString());
+};
+
+// ============ AUTO-NEXT ============
+function scheduleAutoNext() {
+  const idx = currentCourseVideos.findIndex(v => v.path === currentVideo);
+  if (idx < 0 || idx >= currentCourseVideos.length - 1) return;
+  autoNextTarget = currentCourseVideos[idx + 1];
+  anName.textContent = autoNextTarget.name;
+  autoNextEl.style.display = 'block';
+  let count = 5;
+  anCount.textContent = count;
+  autoNextTimer = setInterval(() => {
+    count--;
+    anCount.textContent = count;
+    if (count <= 0) {
+      cancelAutoNext();
+      playVideo(autoNextTarget);
+    }
+  }, 1000);
+}
+
+function cancelAutoNext() {
+  if (autoNextTimer) { clearInterval(autoNextTimer); autoNextTimer = null; }
+  autoNextEl.style.display = 'none';
+  autoNextTarget = null;
+}
+
+document.getElementById('an-play').onclick = () => {
+  const target = autoNextTarget;
+  cancelAutoNext();
+  if (target) playVideo(target);
+};
+document.getElementById('an-cancel').onclick = () => cancelAutoNext();
+
+// ============ RACCOURCIS CLAVIER ============
+document.addEventListener('keydown', (e) => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+  const courseView = document.getElementById('view-course');
+  if (!courseView.classList.contains('active')) return;
+  // Ne pas interférer si le PDF est ouvert
+  if (document.querySelector('.player-wrap').classList.contains('pdf-active')) return;
+
+  switch (e.key) {
+    case ' ':
+      e.preventDefault();
+      if (player.paused) player.play().catch(()=>{}); else player.pause();
+      break;
+    case 'ArrowLeft':
+      e.preventDefault();
+      player.currentTime = Math.max(0, player.currentTime - 5);
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      player.currentTime = Math.min(player.duration || 0, player.currentTime + 5);
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      player.volume = Math.min(1, player.volume + 0.1);
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      player.volume = Math.max(0, player.volume - 0.1);
+      break;
+    case 'f': case 'F':
+      e.preventDefault();
+      if (document.fullscreenElement) document.exitFullscreen();
+      else player.requestFullscreen?.();
+      break;
+    case 'c': case 'C':
+      e.preventDefault();
+      if (currentSubtitles.length > 0) {
+        const tracks = player.textTracks;
+        let anyShowing = false;
+        for (let i = 0; i < tracks.length; i++) if (tracks[i].mode === 'showing') anyShowing = true;
+        if (anyShowing) setSubtitleMode('off');
+        else enableTrack(0);
+      }
+      break;
+    case 'n': case 'N': playNextLesson(); break;
+    case 'p': case 'P': playPrevLesson(); break;
+  }
+});
+
+function playNextLesson() {
+  const idx = currentCourseVideos.findIndex(v => v.path === currentVideo);
+  if (idx >= 0 && idx < currentCourseVideos.length - 1) playVideo(currentCourseVideos[idx + 1]);
+}
+function playPrevLesson() {
+  const idx = currentCourseVideos.findIndex(v => v.path === currentVideo);
+  if (idx > 0) playVideo(currentCourseVideos[idx - 1]);
+}
+
+// ============ SOUS-TITRES ============
 function formatLangLabel(lang) {
   if (lang === 'default') return 'Par défaut';
   const labels = {
@@ -738,17 +1132,14 @@ function formatLangLabel(lang) {
     da:'Danois', fi:'Finnois', cs:'Tchèque', el:'Grec', he:'Hébreu',
     hu:'Hongrois', ro:'Roumain', uk:'Ukrainien', vi:'Vietnamien', th:'Thaï',
     id:'Indonésien', hi:'Hindi', bg:'Bulgare', hr:'Croate', sr:'Serbe',
-    sk:'Slovaque', sl:'Slovène', lt:'Lituanien', lv:'Letton', et:'Estonien',
-    fa:'Persan'
+    sk:'Slovaque', sl:'Slovène', lt:'Lituanien', lv:'Letton', et:'Estonien', fa:'Persan'
   };
   return labels[lang] || lang.toUpperCase();
 }
 
 function enableTrack(idx) {
   const tracks = player.textTracks;
-  for (let i = 0; i < tracks.length; i++) {
-    tracks[i].mode = (i === idx) ? 'showing' : 'disabled';
-  }
+  for (let i = 0; i < tracks.length; i++) tracks[i].mode = (i === idx) ? 'showing' : 'disabled';
   const lang = currentSubtitles[idx] ? currentSubtitles[idx].lang : 'default';
   localStorage.setItem('subtitle_' + currentVideoPath, lang);
   updateSubtitleMenuSelection(idx);
@@ -792,20 +1183,16 @@ document.addEventListener('click', (e) => {
   if (!subtitleMenu.contains(e.target) && e.target !== subtitleBtn) subtitleMenu.classList.remove('open');
 });
 
-function updateArchiveBtn() {
-  archiveBtn.textContent = currentArchived ? 'Désarchiver' : 'Archiver';
-  archiveBtn.onclick = async () => {
-    await toggleArchive(currentVideo, !currentArchived);
-    currentArchived = !currentArchived;
-    updateArchiveBtn();
-  };
-}
-
+// ============ MARQUER TERMINÉ / QUIZ ============
 function updateCompleteBtn() {
   completeBtn.textContent = currentCompleted ? '↺ Non terminé' : '✅ Marquer terminé';
   completeBtn.style.background = currentCompleted ? '#4ade80' : '';
   completeBtn.style.color = currentCompleted ? '#000' : '';
   completeBtn.onclick = async () => {
+    if (!currentCompleted && currentVideoData && currentVideoData.quiz) {
+      openQuiz(currentVideoData);
+      return;
+    }
     await markCompleted(currentVideo, !currentCompleted);
     currentCompleted = !currentCompleted;
     updateCompleteBtn();
@@ -822,41 +1209,122 @@ async function markCompleted(videoPath, completed) {
   });
 }
 
-async function toggleArchive(videoPath, archive) {
-  await fetch('/api/archive', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: JSON.stringify({ video_path: videoPath, archived: archive })
-  });
+// ============ QUIZ ============
+const quizOverlay = document.getElementById('quiz-overlay');
+const quizBody = document.getElementById('quiz-body');
+const quizResult = document.getElementById('quiz-result');
+const quizValidate = document.getElementById('quiz-validate');
+const quizCloseBtn = document.getElementById('quiz-close-btn');
+const quizLessonName = document.getElementById('quiz-lesson-name');
+
+document.getElementById('quiz-close').onclick = closeQuiz;
+document.getElementById('quiz-close-btn').onclick = closeQuiz;
+
+function closeQuiz() {
+  quizOverlay.classList.remove('open');
+  currentQuiz = null;
+  currentQuizAnswers = [];
 }
 
-async function saveProgress(useBeacon = false) {
-  if (!currentVideo || !player.duration || player.currentTime < 1) return;
-  const body = JSON.stringify({
-    video_path: currentVideo,
-    position: player.currentTime,
-    duration: player.duration
-  });
-  if (useBeacon && navigator.sendBeacon) {
-    navigator.sendBeacon('/api/progress?token=' + encodeURIComponent(token),
-      new Blob([body], { type: 'application/json' }));
-    return;
-  }
+async function openQuiz(video) {
   try {
-    await fetch('/api/progress', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-      body
-    });
+    const r = await fetch('/api/quiz/' + encodeURIComponent(video.quiz.path), { headers: { Authorization: 'Bearer ' + token } });
+    const data = await r.json();
+    if (!data.questions || !data.questions.length) { closeQuiz(); return; }
+    currentQuiz = data;
+    currentQuizAnswers = new Array(data.questions.length).fill(-1);
+    quizLessonName.textContent = video.name;
+    quizResult.textContent = '';
+    quizResult.className = 'quiz-result';
+    quizValidate.style.display = 'inline-block';
+    quizCloseBtn.style.display = 'none';
+    renderQuiz();
+    quizOverlay.classList.add('open');
   } catch {}
 }
 
-player.addEventListener('pause', () => saveProgress());
-player.addEventListener('ended', saveProgress);
-window.addEventListener('beforeunload', () => saveProgress(true));
+function renderQuiz() {
+  quizBody.innerHTML = '';
+  currentQuiz.questions.forEach((q, qi) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-q';
+    div.innerHTML = `<div class="q-text"><span class="q-num">Q${qi + 1}.</span>${escapeHtml(q.question)}</div>`;
+    q.options.forEach((opt, oi) => {
+      const optEl = document.createElement('div');
+      optEl.className = 'q-option';
+      optEl.dataset.q = qi;
+      optEl.dataset.o = oi;
+      optEl.innerHTML = `<input type="radio" name="q${qi}" ${currentQuizAnswers[qi] === oi ? 'checked' : ''}><span>${escapeHtml(opt)}</span>`;
+      optEl.onclick = (e) => {
+        if (e.target.tagName !== 'INPUT') optEl.querySelector('input').checked = true;
+        currentQuizAnswers[qi] = oi;
+        quizBody.querySelectorAll(`.q-option[data-q="${qi}"]`).forEach(o => o.classList.remove('selected'));
+        optEl.classList.add('selected');
+      };
+      if (currentQuizAnswers[qi] === oi) optEl.classList.add('selected');
+      div.appendChild(optEl);
+    });
+    const expl = document.createElement('div');
+    expl.className = 'q-explanation';
+    expl.dataset.q = qi;
+    expl.textContent = q.explanation || '';
+    div.appendChild(expl);
+    quizBody.appendChild(div);
+  });
+}
 
-document.getElementById('course-back').onclick = () => history.back();
+quizValidate.onclick = () => {
+  if (currentQuizAnswers.some(a => a === -1)) {
+    quizResult.textContent = 'Répondez à toutes les questions.';
+    quizResult.className = 'quiz-result fail';
+    return;
+  }
+  let correct = 0;
+  currentQuiz.questions.forEach((q, qi) => {
+    const userAns = currentQuizAnswers[qi];
+    const isCorrect = userAns === q.correct;
+    if (isCorrect) correct++;
+    quizBody.querySelectorAll(`.q-option[data-q="${qi}"]`).forEach(o => {
+      const oi = parseInt(o.dataset.o, 10);
+      o.classList.remove('selected');
+      if (oi === q.correct) o.classList.add('correct');
+      if (oi === userAns && !isCorrect) o.classList.add('wrong');
+      o.onclick = null;
+    });
+    const expl = quizBody.querySelector(`.q-explanation[data-q="${qi}"]`);
+    if (expl && expl.textContent) expl.classList.add('show');
+  });
+  const total = currentQuiz.questions.length;
+  const pass = correct === total;
+  quizResult.textContent = `${correct}/${total} ${pass ? '✓ Bravo !' : '— Révisez et réessayez.'}`;
+  quizResult.className = 'quiz-result ' + (pass ? 'pass' : 'fail');
+  quizValidate.style.display = 'none';
+  quizCloseBtn.style.display = 'inline-block';
+  if (pass) {
+    (async () => {
+      await markCompleted(currentVideo, true);
+      currentCompleted = true;
+      updateCompleteBtn();
+    })();
+  }
+};
 
+// ============ UTILS ============
+function formatTime(s) {
+  if (!s || isNaN(s)) return '0s';
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = Math.floor(s%60);
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function escapeJs(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+function cssEscape(s) { return s.replace(/["\\]/g, '\\$&'); }
+
+// ============ ADMIN ============
 document.getElementById('create-user-btn').onclick = async () => {
   const u = document.getElementById('new-username').value.trim();
   const p = document.getElementById('new-password').value;
@@ -905,12 +1373,8 @@ async function loadUsers() {
       `;
       list.appendChild(el);
     });
-    list.querySelectorAll('[data-reset]').forEach(b => {
-      b.onclick = () => resetPassword(parseInt(b.dataset.reset), b.dataset.name);
-    });
-    list.querySelectorAll('[data-del]').forEach(b => {
-      b.onclick = () => deleteUser(parseInt(b.dataset.del), b.dataset.name);
-    });
+    list.querySelectorAll('[data-reset]').forEach(b => b.onclick = () => resetPassword(parseInt(b.dataset.reset), b.dataset.name));
+    list.querySelectorAll('[data-del]').forEach(b => b.onclick = () => deleteUser(parseInt(b.dataset.del), b.dataset.name));
   } catch { list.innerHTML = '<div class="empty">Erreur réseau</div>'; }
 }
 
@@ -928,34 +1392,23 @@ async function resetPassword(id, name) {
 
 async function deleteUser(id, name) {
   if (!confirm(`Supprimer "${name}" et toute sa progression ?`)) return;
-  const r = await fetch(`/api/admin/users/${id}`, {
-    method: 'DELETE',
-    headers: { Authorization: 'Bearer ' + token }
-  });
+  const r = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
   if (r.ok) loadUsers();
   else alert('Erreur lors de la suppression.');
 }
 
-function formatTime(s) {
-  if (!s || isNaN(s)) return '0s';
-  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = Math.floor(s%60);
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m}m ${sec}s`;
-  return `${sec}s`;
-}
+document.getElementById('course-back').onclick = () => history.back();
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-}
-
-function cssEscape(s) { return s.replace(/["\\]/g, '\\$&'); }
-
-if (token) {
-  setupNavbar();
-  router();
-} else {
-  showView('login');
-}
+// ============ INIT ============
+(async () => {
+  if (token) {
+    await loadFavoritesKeys();
+    setupNavbar();
+    router();
+  } else {
+    showView('login');
+  }
+})();
 </script>
 </body>
 </html>
