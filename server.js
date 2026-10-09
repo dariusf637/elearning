@@ -31,7 +31,6 @@ if (!jwtSecret) {
 const JWT_SECRET = jwtSecret;
 
 // ============ INITIALISATION DE LA BASE ============
-// Crée les tables si elles n'existent pas
 if (fs.existsSync(SCHEMA_PATH)) {
   try {
     db.exec(fs.readFileSync(SCHEMA_PATH, 'utf8'));
@@ -39,7 +38,6 @@ if (fs.existsSync(SCHEMA_PATH)) {
     console.error('⚠️ Erreur schéma:', e.message);
   }
 } else {
-  // Fallback : création inline si schema.sql manquant
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,7 +61,6 @@ if (fs.existsSync(SCHEMA_PATH)) {
   `);
 }
 
-// Migration : ajouter les colonnes manquantes si la base vient d'une ancienne version
 try {
   const cols = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
   if (!cols.includes('role')) db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
@@ -185,8 +182,6 @@ app.post('/api/admin/users/:id/password', auth, adminOnly, async (req, res) => {
 // ============ SOUS-TITRES ============
 function findSubtitles(dirAbs, baseName, relDir) {
   const subtitles = [];
-
-  // Dictionnaire des noms de langues → codes ISO
   const LANG_MAP = {
     'arabic': 'ar', 'bulgarian': 'bg', 'chinese': 'zh', 'croatian': 'hr',
     'czech': 'cs', 'danish': 'da', 'dutch': 'nl', 'english': 'en',
@@ -201,70 +196,46 @@ function findSubtitles(dirAbs, baseName, relDir) {
     'allemand': 'de', 'italien': 'it', 'portugais': 'pt', 'russe': 'ru',
     'arabe': 'ar', 'chinois': 'zh', 'japonais': 'ja', 'coréen': 'ko'
   };
-
-  // Extrait le code langue d'une chaîne (nom complet ou code court)
   function extractLang(str) {
     if (!str) return null;
     const s = str.toLowerCase().trim();
-    // Code court (fr, en, es...)
     if (/^[a-z]{2}$/.test(s)) return s;
-    // Code court avec région (fr-fr, en-us, pt-br...)
     if (/^[a-z]{2}[-_][a-z]{2}$/.test(s)) return s.slice(0, 2);
-    // Nom complet de langue
     if (LANG_MAP[s]) return LANG_MAP[s];
-    // Nom complet avec "Français (France)" par exemple
     for (const [name, code] of Object.entries(LANG_MAP)) {
       if (s.startsWith(name)) return code;
     }
     return null;
   }
-
   const scan = (absDir, relSub) => {
     let entries;
     try { entries = fs.readdirSync(absDir); } catch { return; }
     for (const entry of entries) {
       if (!entry.toLowerCase().endsWith('.vtt')) continue;
-      const entryBase = entry.slice(0, -4); // enlève .vtt
-
+      const entryBase = entry.slice(0, -4);
       let lang = null;
-
-      // Cas 1 : nom exact (même nom que la vidéo)
-      if (entryBase === baseName) {
-        lang = 'default';
-      }
-      // Cas 2 : <base>.<lang>.vtt (ex: video.fr.vtt)
+      if (entryBase === baseName) lang = 'default';
       else if (entryBase.startsWith(baseName + '.')) {
         const suffix = entryBase.slice(baseName.length + 1);
         lang = extractLang(suffix) || suffix.toLowerCase();
-      }
-      // Cas 3 : <base> <Langue>.vtt (ex: "1 - Introduction French.vtt")
-      else if (entryBase.startsWith(baseName + ' ')) {
+      } else if (entryBase.startsWith(baseName + ' ')) {
         const suffix = entryBase.slice(baseName.length + 1);
         lang = extractLang(suffix) || suffix.toLowerCase();
-      }
-      // Cas 4 : <base> - <Langue>.vtt (ex: "video - French.vtt")
-      else if (entryBase.startsWith(baseName + ' - ')) {
+      } else if (entryBase.startsWith(baseName + ' - ')) {
         const suffix = entryBase.slice(baseName.length + 3);
         lang = extractLang(suffix) || suffix.toLowerCase();
-      }
-      // Cas 5 : <base>_<Langue>.vtt (ex: video_French.vtt)
-      else if (entryBase.startsWith(baseName + '_')) {
+      } else if (entryBase.startsWith(baseName + '_')) {
         const suffix = entryBase.slice(baseName.length + 1);
         lang = extractLang(suffix) || suffix.toLowerCase();
       }
-
-      if (lang) {
-        subtitles.push({ name: entry, lang, path: path.join(relSub, entry) });
-      }
+      if (lang) subtitles.push({ name: entry, lang, path: path.join(relSub, entry) });
     }
   };
-
   scan(dirAbs, relDir);
   const s1 = path.join(dirAbs, 'subtitles'), r1 = path.join(relDir, 'subtitles');
   if (fs.existsSync(s1) && fs.statSync(s1).isDirectory()) scan(s1, r1);
   const s2 = path.join(dirAbs, 'Subtitles'), r2 = path.join(relDir, 'Subtitles');
   if (fs.existsSync(s2) && fs.statSync(s2).isDirectory()) scan(s2, r2);
-
   subtitles.sort((a, b) => {
     if (a.lang === 'default') return -1;
     if (b.lang === 'default') return 1;
@@ -287,10 +258,8 @@ function extractLeadingNumber(name) {
   }
   return null;
 }
-
 const KW_FIRST = ['introduction','intro','bienvenue','welcome','présentation','presentation','overview','start','commencer','getting started','démarrage','demarrage','aperçu','apercu','avant-propos','préambule','preambule','sommaire','plan du cours'];
 const KW_LAST = ['conclusion','fin','final','résumé','resume','summary','bonus','annexe','appendix','remerciements','thank','crédits','credits','outro','wrap up','wrap-up','récapitulatif','recapitulatif','bilan'];
-
 function getKwPriority(name) {
   const lower = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   for (const kw of KW_FIRST) {
@@ -303,7 +272,6 @@ function getKwPriority(name) {
   }
   return 25;
 }
-
 function smartCompare(a, b) {
   if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
   const an = extractLeadingNumber(a.name), bn = extractLeadingNumber(b.name);
@@ -349,7 +317,6 @@ function scanDir(dir, relPath = '') {
 
 const folderCache = new Map();
 const CACHE_TTL = 120000;
-
 function countVideosIn(dir) {
   const now = Date.now();
   const c = folderCache.get(dir);
@@ -370,8 +337,12 @@ function countVideosIn(dir) {
   return data;
 }
 
-// ============ ROUTES COURS ============
-app.get('/api/courses/top', auth, (req, res) => {
+// ============ AGRÉGATION PAR COURS ============
+function likeEscape(str) {
+  return str.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
+function getCourseStats(userId) {
   const folders = [];
   try {
     const entries = fs.readdirSync(MEDIA_ROOT, { withFileTypes: true });
@@ -379,32 +350,89 @@ app.get('/api/courses/top', auth, (req, res) => {
       if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
       const abs = path.join(MEDIA_ROOT, entry.name);
       const stats = countVideosIn(abs);
+      const videoCount = stats.videoCount;
+      const likePattern = likeEscape(entry.name) + '/%';
+
       const prog = db.prepare(`
-        SELECT COUNT(*) AS started, SUM(completed) AS completed, MAX(last_watched) AS last_watched
-        FROM progress WHERE user_id = ? AND video_path LIKE ?
-      `).get(req.user.id, entry.name + '/%');
-      const started = prog.started || 0;
-      const completed = prog.completed || 0;
+        SELECT
+          COUNT(*) AS total_touched,
+          SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) AS total_completed,
+          MAX(last_watched) AS last_watched
+        FROM progress
+        WHERE user_id = ? AND video_path LIKE ? ESCAPE '\\'
+      `).get(userId, likePattern);
+
+      const lastVid = db.prepare(`
+        SELECT video_path FROM progress
+        WHERE user_id = ? AND video_path LIKE ? ESCAPE '\\' AND position > 5 AND completed = 0
+        ORDER BY last_watched DESC LIMIT 1
+      `).get(userId, likePattern);
+
+      const completed = prog.total_completed || 0;
+      const started = prog.total_touched || 0;
+      const percent = videoCount > 0 ? Math.round(completed * 100 / videoCount) : 0;
+      const isFullyDone = videoCount > 0 && completed === videoCount;
+      const hasStarted = started > 0;
+
       folders.push({
         type: 'folder',
         name: entry.name,
         path: entry.name,
-        videoCount: stats.videoCount,
+        videoCount,
         started,
         completed,
-        lastWatched: prog.last_watched,
-        percent: stats.videoCount > 0 ? Math.round(completed * 100 / stats.videoCount) : 0
+        lastWatched: prog.last_watched || 0,
+        lastVideoPath: lastVid ? lastVid.video_path : null,
+        percent,
+        isFullyDone,
+        hasStarted
       });
     }
   } catch (e) { console.error(e); }
+  return folders;
+}
+
+// ============ ROUTES COURS ============
+app.get('/api/courses/top', auth, (req, res) => {
+  const folders = getCourseStats(req.user.id);
   folders.sort(smartCompare);
   res.json(folders);
 });
 
+// Cours "en cours" : démarrés mais pas finis (triés par dernier visionnage)
+app.get('/api/in-progress', auth, (req, res) => {
+  const folders = getCourseStats(req.user.id);
+  const filtered = folders
+    .filter(c => c.hasStarted && !c.isFullyDone)
+    .sort((a, b) => b.lastWatched - a.lastWatched);
+  res.json(filtered);
+});
+
+// Cours "terminés" : tous les vidéos complétées
+app.get('/api/completed', auth, (req, res) => {
+  const folders = getCourseStats(req.user.id);
+  const filtered = folders
+    .filter(c => c.isFullyDone)
+    .sort((a, b) => b.lastWatched - a.lastWatched);
+  res.json(filtered);
+});
+
+// Reprendre : les 4 cours récemment regardés
+app.get('/api/resume', auth, (req, res) => {
+  const folders = getCourseStats(req.user.id);
+  const filtered = folders
+    .filter(c => c.hasStarted && !c.isFullyDone)
+    .sort((a, b) => b.lastWatched - a.lastWatched)
+    .slice(0, 4);
+  res.json(filtered);
+});
+
+// Ancien endpoint (gardé pour compat)
 app.get('/api/courses', auth, (req, res) => {
   res.json(scanDir(MEDIA_ROOT));
 });
 
+// Détail d'un cours (arbre récursif)
 app.get('/api/courses/detail/*', auth, (req, res) => {
   const rel = decodeURIComponent(req.params[0]);
   const abs = path.join(MEDIA_ROOT, rel);
@@ -413,45 +441,12 @@ app.get('/api/courses/detail/*', auth, (req, res) => {
   res.json(scanDir(abs, rel));
 });
 
-app.get('/api/resume', auth, (req, res) => {
-  const rows = db.prepare(`
-    SELECT video_path, position, duration,
-           CASE WHEN duration > 0 THEN ROUND(position * 100.0 / duration, 1) ELSE 0 END AS percent,
-           last_watched
-    FROM progress
-    WHERE user_id = ? AND archived = 0 AND completed = 0 AND position > 5
-    ORDER BY last_watched DESC
-    LIMIT 8
-  `).all(req.user.id);
-  res.json(rows);
-});
-
-app.get('/api/in-progress', auth, (req, res) => {
-  const rows = db.prepare(`
-    SELECT video_path, position, duration, completed, archived, last_watched,
-           CASE WHEN duration > 0 THEN ROUND(position * 100.0 / duration, 1) ELSE 0 END AS percent
-    FROM progress WHERE user_id = ? AND archived = 0 AND position > 5
-    ORDER BY last_watched DESC
-  `).all(req.user.id);
-  res.json(rows);
-});
-
+// Archive (gardé pour compat, non utilisé côté UI)
 app.get('/api/archived', auth, (req, res) => {
   const rows = db.prepare(`
     SELECT video_path, position, duration, completed, archived, last_watched,
            CASE WHEN duration > 0 THEN ROUND(position * 100.0 / duration, 1) ELSE 0 END AS percent
     FROM progress WHERE user_id = ? AND archived = 1
-    ORDER BY last_watched DESC
-  `).all(req.user.id);
-  res.json(rows);
-});
-
-app.get('/api/completed', auth, (req, res) => {
-  const rows = db.prepare(`
-    SELECT video_path, position, duration, completed, last_watched,
-           CASE WHEN duration > 0 THEN ROUND(position * 100.0 / duration, 1) ELSE 0 END AS percent
-    FROM progress
-    WHERE user_id = ? AND completed = 1
     ORDER BY last_watched DESC
   `).all(req.user.id);
   res.json(rows);
@@ -554,7 +549,6 @@ app.listen(PORT, '0.0.0.0', () => {
   }
 });
 
-// Arrêt propre
 process.on('SIGINT', () => {
   console.log('\n👋 Fermeture propre de la base…');
   try { db.close(); } catch {}

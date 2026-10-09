@@ -9,7 +9,6 @@
   html, body { height: 100%; }
   body { font-family: system-ui, -apple-system, sans-serif; background: #0f0f1a; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-  /* ============ NAVBAR ============ */
   #navbar { min-height: 56px; background: #1a1a2e; border-bottom: 1px solid #222; display: flex; align-items: center; padding: 0 16px; gap: 16px; flex-shrink: 0; flex-wrap: nowrap; }
   #navbar .brand { color: #e94560; font-weight: 700; font-size: 16px; white-space: nowrap; }
   #navbar .nav-links { display: flex; gap: 4px; flex: 1; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -22,7 +21,6 @@
   #navbar button { background: none; border: 1px solid #333; color: #aaa; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; white-space: nowrap; }
   #navbar button:hover { border-color: #e94560; color: #e94560; }
 
-  /* ============ MAIN ============ */
   #main { flex: 1; overflow: hidden; position: relative; }
   .view { position: absolute; inset: 0; overflow-y: auto; display: none; }
   .view.active { display: block; }
@@ -33,19 +31,19 @@
   .page-container h2 .section-action:hover { background: rgba(233,69,96,0.15); }
   .page-container h2 .section-count { font-size: 11px; text-transform: none; letter-spacing: 0; color: #555; font-weight: 400; margin-left: 8px; }
 
-  /* ============ CARDS ============ */
-  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
   .card { background: #1a1a2e; border: 1px solid #222; border-radius: 8px; padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
   .card:hover { border-color: #e94560; transform: translateY(-2px); }
   .card .card-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; min-height: 34px; }
   .card .card-meta { font-size: 11px; color: #888; margin-bottom: 10px; }
-  .card .card-bar { height: 4px; background: #333; border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+  .card .card-bar { height: 5px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
   .card .card-bar > div { height: 100%; background: #4ade80; transition: width 0.3s; }
-  .card .card-percent { font-size: 11px; color: #4ade80; font-weight: 600; }
+  .card .card-percent { font-size: 11px; color: #4ade80; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+  .card .card-percent .lessons-done { color: #888; font-weight: 400; font-size: 10px; }
   .card .card-play { position: absolute; top: 12px; right: 12px; background: #e94560; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
   .card .card-play.done { background: #4ade80; color: #000; }
+  .card .card-meta-course { color: #666; font-size: 10px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #222; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  /* ============ COURSE LAYOUT ============ */
   .course-layout { display: flex; height: 100%; }
   .course-sidebar { width: 360px; background: #1a1a2e; display: flex; flex-direction: column; border-right: 1px solid #222; flex-shrink: 0; }
   .course-sidebar .course-header { padding: 12px 16px; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 10px; }
@@ -64,52 +62,15 @@
   .btn { padding: 6px 12px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap; }
   .btn:hover { background: #e94560; }
 
-  /* ============ LESSONS + ACCORDION ============ */
   .folder-wrapper { margin: 2px 0; }
-  .folder-header {
-    padding: 10px 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-radius: 6px;
-    font-size: 12px;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-    user-select: none;
-    transition: background 0.15s;
-  }
+  .folder-header { padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 6px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; user-select: none; transition: background 0.15s; }
   .folder-header:hover { background: #16213e; color: #fff; }
-  .folder-chevron {
-    display: inline-block;
-    font-size: 9px;
-    transition: transform 0.2s ease;
-    flex-shrink: 0;
-    width: 10px;
-    text-align: center;
-  }
+  .folder-chevron { display: inline-block; font-size: 9px; transition: transform 0.2s ease; flex-shrink: 0; width: 10px; text-align: center; }
   .folder-header.open .folder-chevron { transform: rotate(90deg); }
   .folder-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-  .folder-count {
-    margin-left: auto;
-    font-size: 10px;
-    color: #555;
-    font-weight: 400;
-    background: #222;
-    padding: 1px 6px;
-    border-radius: 8px;
-    flex-shrink: 0;
-  }
+  .folder-count { margin-left: auto; font-size: 10px; color: #555; font-weight: 400; background: #222; padding: 1px 6px; border-radius: 8px; flex-shrink: 0; }
   .folder-header.open .folder-count { color: #4ade80; background: rgba(74,222,128,0.15); }
-  .folder-children {
-    margin-left: 10px;
-    border-left: 1px solid #2a2a44;
-    padding-left: 4px;
-    overflow: hidden;
-    transition: max-height 0.2s ease;
-  }
+  .folder-children { margin-left: 10px; border-left: 1px solid #2a2a44; padding-left: 4px; overflow: hidden; }
   .folder-children.collapsed { display: none; }
 
   .lesson { padding: 11px 14px; cursor: pointer; font-size: 13px; border-radius: 6px; margin: 2px 0; display: flex; flex-direction: column; gap: 4px; }
@@ -119,7 +80,6 @@
   .lesson .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lesson .cc-badge { font-size: 9px; background: #4ade80; color: #000; padding: 1px 5px; border-radius: 3px; font-weight: 600; flex-shrink: 0; }
 
-  /* ============ SUBTITLE MENU ============ */
   #subtitle-menu { position: absolute; bottom: 100%; right: 12px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; padding: 6px; min-width: 200px; display: none; z-index: 10; max-height: 60vh; overflow-y: auto; }
   #subtitle-menu.open { display: block; }
   #subtitle-menu .item { padding: 8px 12px; font-size: 13px; cursor: pointer; border-radius: 4px; color: #ccc; }
@@ -127,7 +87,6 @@
   #subtitle-menu .item.selected { background: #e94560; color: #fff; }
   #subtitle-menu .header { padding: 6px 12px; font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
 
-  /* ============ LOGIN ============ */
   #view-login { display: none; align-items: center; justify-content: center; padding: 20px; }
   #view-login.active { display: flex; }
   .login-box { background: #1a1a2e; padding: 30px; border-radius: 10px; width: 100%; max-width: 340px; border: 1px solid #333; }
@@ -137,7 +96,6 @@
   .login-box button:hover { background: #c73650; }
   .login-box .error { color: #e94560; font-size: 12px; margin-top: 8px; text-align: center; min-height: 16px; }
 
-  /* ============ ADMIN ============ */
   .admin-form { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
   .admin-form input, .admin-form select { padding: 9px 12px; background: #0f0f1a; border: 1px solid #333; border-radius: 4px; color: #fff; font-size: 13px; min-width: 180px; flex: 1; }
   .admin-form button { padding: 9px 16px; background: #e94560; border: none; border-radius: 4px; color: #fff; cursor: pointer; font-size: 13px; }
@@ -155,12 +113,10 @@
 
   .empty { padding: 30px 16px; color: #666; font-size: 13px; text-align: center; }
 
-  /* ============ RESPONSIVE ============ */
   @media (max-width: 900px) {
     .course-sidebar { width: 280px; }
     .page-container { padding: 20px; }
   }
-
   @media (max-width: 700px) {
     #navbar { flex-wrap: wrap; padding: 8px 12px; gap: 8px; height: auto; min-height: 52px; }
     #navbar .brand { font-size: 14px; }
@@ -168,15 +124,12 @@
     #navbar .nav-links { order: 3; width: 100%; justify-content: flex-start; gap: 2px; border-top: 1px solid #222; padding-top: 6px; margin-top: 4px; }
     #navbar .nav-links a { font-size: 12px; padding: 6px 10px; }
     #navbar .nav-user #nav-username { display: none; }
-
     .page-container { padding: 16px 12px; }
     .page-container h1 { font-size: 20px; margin-bottom: 16px; }
     .page-container h2 { font-size: 13px; margin: 20px 0 10px; }
-
     .card-grid { grid-template-columns: 1fr; gap: 10px; }
     .card { padding: 12px; }
     .card .card-title { font-size: 13px; min-height: auto; }
-
     .course-layout { flex-direction: column-reverse; height: 100%; }
     .course-sidebar { width: 100%; max-height: 45%; border-right: none; border-top: 1px solid #222; order: 2; }
     .course-main { flex: 1; min-height: 0; order: 1; }
@@ -185,18 +138,14 @@
     .player-info { flex-direction: column; align-items: stretch; padding: 8px 12px; gap: 6px; }
     .player-info .info-text { font-size: 12px; white-space: normal; overflow: visible; text-overflow: clip; }
     .btn { font-size: 11px; padding: 5px 10px; }
-
     #subtitle-menu { right: 8px; left: 8px; min-width: 0; max-height: 50vh; }
-
     .login-box { padding: 24px 20px; }
-
     .admin-form { flex-direction: column; }
     .admin-form input, .admin-form select { min-width: 0; width: 100%; }
     .admin-form button { width: 100%; }
     .user-row { flex-direction: column; align-items: flex-start; }
     .user-row .actions { width: 100%; justify-content: flex-start; }
   }
-
   @media (max-width: 400px) {
     #navbar .brand { font-size: 13px; }
     #navbar .nav-links a { font-size: 11px; padding: 5px 8px; }
@@ -264,7 +213,7 @@
 
   <div id="view-in-progress" class="view">
     <div class="page-container">
-      <h1>▶ Cours en cours</h1>
+      <h1>▶ Cours en cours <span id="in-progress-count" style="font-size:14px;color:#666;font-weight:400;"></span></h1>
       <div id="in-progress-grid" class="card-grid"></div>
     </div>
   </div>
@@ -329,18 +278,12 @@
 </main>
 
 <script>
-// ============ VÉRIFICATION DU SETUP ============
 (async () => {
   try {
     const r = await fetch('/api/setup/status');
     const data = await r.json();
-    if (data.needsSetup) {
-      window.location.href = '/setup.html';
-      return;
-    }
-  } catch (e) {
-    console.error('Setup check failed:', e);
-  }
+    if (data.needsSetup) { window.location.href = '/setup.html'; return; }
+  } catch (e) { console.error(e); }
 })();
 
 let token = localStorage.getItem('token');
@@ -354,7 +297,7 @@ let currentArchived = false;
 let currentCompleted = false;
 let currentCoursePath = null;
 
-const HOME_COMPLETED_LIMIT = 4; // Nombre de cours terminés affichés sur l'accueil
+const HOME_COMPLETED_LIMIT = 4;
 
 const player = document.getElementById('player');
 const subtitleBtn = document.getElementById('subtitle-btn');
@@ -396,7 +339,7 @@ function router() {
   } else if (hash.startsWith('#/in-progress')) {
     showView('in-progress');
     document.querySelector('[data-nav="in-progress"]').classList.add('active');
-    loadInProgress();
+    loadInProgressPage();
   } else if (hash.startsWith('#/completed')) {
     showView('completed');
     document.querySelector('[data-nav="completed"]').classList.add('active');
@@ -469,6 +412,32 @@ function setupNavbar() {
   document.getElementById('home-username').textContent = username || '';
 }
 
+// ============ CARTE DE COURS (agrégée) ============
+function renderCourseProgressCard(c, opts = {}) {
+  const el = document.createElement('div');
+  el.className = 'card';
+  const playIcon = opts.done ? '<div class="card-play done">✓</div>' :
+                   opts.resume ? '<div class="card-play">▶</div>' : '';
+  const percentLabel = opts.done ? '100% · Terminé' :
+                       opts.resume ? `${c.percent}% · Reprendre` :
+                       `${c.percent}%`;
+  el.innerHTML = `
+    ${playIcon}
+    <div class="card-title">${escapeHtml(c.name)}</div>
+    <div class="card-meta">${c.completed} / ${c.videoCount} leçons</div>
+    <div class="card-bar"><div style="width:${c.percent}%${opts.done ? ';background:#4ade80' : ''}"></div></div>
+    <div class="card-percent">
+      <span>${percentLabel}</span>
+      ${c.percent < 100 && c.percent > 0 ? `<span class="lessons-done">${c.videoCount - c.completed} restantes</span>` : ''}
+    </div>
+  `;
+  el.onclick = () => {
+    const url = '#/course/' + encodeURIComponent(c.path) + (c.lastVideoPath ? '?play=' + encodeURIComponent(c.lastVideoPath) : '');
+    navigate(url);
+  };
+  return el;
+}
+
 async function loadHome() {
   // Reprendre
   try {
@@ -479,13 +448,13 @@ async function loadHome() {
     if (resume.length === 0) {
       grid.innerHTML = '<div class="empty">Aucun cours en cours. Lancez une vidéo pour la voir ici.</div>';
     } else {
-      resume.forEach(v => grid.appendChild(renderResumeCard(v)));
+      resume.forEach(c => grid.appendChild(renderCourseProgressCard(c, { resume: true })));
     }
   } catch {
     document.getElementById('home-resume-grid').innerHTML = '<div class="empty">Erreur de chargement</div>';
   }
 
-  // Cours terminés — limité
+  // Cours terminés (limité)
   await loadCompletedLimited();
 
   // Mes cours
@@ -501,11 +470,11 @@ async function loadCompletedLimited() {
     grid.innerHTML = '';
     action.innerHTML = '';
     if (all.length === 0) {
-      grid.innerHTML = '<div class="empty">Aucun cours terminé. Marquez une vidéo comme terminée pour la voir ici.</div>';
+      grid.innerHTML = '<div class="empty">Aucun cours terminé. Complétez un cours pour le voir ici.</div>';
       return;
     }
     const limited = all.slice(0, HOME_COMPLETED_LIMIT);
-    limited.forEach(v => grid.appendChild(renderCompletedCard(v)));
+    limited.forEach(c => grid.appendChild(renderCourseProgressCard(c, { done: true })));
     if (all.length > HOME_COMPLETED_LIMIT) {
       const btn = document.createElement('button');
       btn.className = 'section-action';
@@ -537,81 +506,30 @@ async function loadCompletedPage() {
       return;
     }
     counter.textContent = `(${rows.length})`;
-    rows.forEach(v => grid.appendChild(renderCompletedCard(v)));
+    rows.forEach(c => grid.appendChild(renderCourseProgressCard(c, { done: true })));
   } catch {
     grid.innerHTML = '<div class="empty">Erreur de chargement</div>';
   }
 }
 
-async function loadInProgress() {
+async function loadInProgressPage() {
   const grid = document.getElementById('in-progress-grid');
+  const counter = document.getElementById('in-progress-count');
   grid.innerHTML = '<div class="empty">Chargement…</div>';
   try {
     const r = await fetch('/api/in-progress', { headers: { Authorization: 'Bearer ' + token } });
     const rows = await r.json();
     grid.innerHTML = '';
     if (rows.length === 0) {
+      counter.textContent = '';
       grid.innerHTML = '<div class="empty">Aucun cours en cours.</div>';
       return;
     }
-    rows.forEach(v => grid.appendChild(renderProgressCard(v)));
+    counter.textContent = `(${rows.length})`;
+    rows.forEach(c => grid.appendChild(renderCourseProgressCard(c, { resume: true })));
   } catch {
     grid.innerHTML = '<div class="empty">Erreur de chargement</div>';
   }
-}
-
-function renderProgressCard(v) {
-  const filename = v.video_path.split('/').pop();
-  const courseName = v.video_path.split('/')[0];
-  const el = document.createElement('div');
-  el.className = 'card';
-  el.innerHTML = `
-    <div class="card-play">▶</div>
-    <div class="card-title">${escapeHtml(filename)}</div>
-    <div class="card-meta">${escapeHtml(courseName)}</div>
-    <div class="card-bar"><div style="width:${v.percent}%"></div></div>
-    <div class="card-percent">${v.percent}% · ${formatTime(v.position)} / ${formatTime(v.duration)}</div>
-  `;
-  el.onclick = () => {
-    navigate('#/course/' + encodeURIComponent(v.video_path.split('/')[0]) + '?play=' + encodeURIComponent(v.video_path));
-  };
-  return el;
-}
-
-function renderCompletedCard(v) {
-  const filename = v.video_path.split('/').pop();
-  const courseName = v.video_path.split('/')[0];
-  const el = document.createElement('div');
-  el.className = 'card';
-  el.innerHTML = `
-    <div class="card-play done">✓</div>
-    <div class="card-title">${escapeHtml(filename)}</div>
-    <div class="card-meta">${escapeHtml(courseName)}</div>
-    <div class="card-bar"><div style="width:100%;background:#4ade80;"></div></div>
-    <div class="card-percent">100% · Terminé</div>
-  `;
-  el.onclick = () => {
-    navigate('#/course/' + encodeURIComponent(v.video_path.split('/')[0]) + '?play=' + encodeURIComponent(v.video_path));
-  };
-  return el;
-}
-
-function renderResumeCard(v) {
-  const filename = v.video_path.split('/').pop();
-  const courseName = v.video_path.split('/')[0];
-  const el = document.createElement('div');
-  el.className = 'card';
-  el.innerHTML = `
-    <div class="card-play">▶</div>
-    <div class="card-title">${escapeHtml(filename)}</div>
-    <div class="card-meta">${escapeHtml(courseName)}</div>
-    <div class="card-bar"><div style="width:${v.percent}%"></div></div>
-    <div class="card-percent">${v.percent}% · Reprendre</div>
-  `;
-  el.onclick = () => {
-    navigate('#/course/' + encodeURIComponent(v.video_path.split('/')[0]) + '?play=' + encodeURIComponent(v.video_path));
-  };
-  return el;
 }
 
 async function loadCoursesGrid(targetId) {
@@ -625,23 +543,10 @@ async function loadCoursesGrid(targetId) {
       grid.innerHTML = '<div class="empty">Aucun cours trouvé.<br>Vérifiez le montage Yandex.</div>';
       return;
     }
-    courses.forEach(c => grid.appendChild(renderCourseCard(c)));
+    courses.forEach(c => grid.appendChild(renderCourseProgressCard(c, { done: c.isFullyDone })));
   } catch {
     grid.innerHTML = '<div class="empty">Erreur de chargement</div>';
   }
-}
-
-function renderCourseCard(c) {
-  const el = document.createElement('div');
-  el.className = 'card';
-  el.innerHTML = `
-    <div class="card-title">${escapeHtml(c.name)}</div>
-    <div class="card-meta">${c.videoCount} vidéo${c.videoCount > 1 ? 's' : ''} · ${c.completed} terminée${c.completed > 1 ? 's' : ''}</div>
-    <div class="card-bar"><div style="width:${c.percent}%"></div></div>
-    <div class="card-percent">${c.percent}%</div>
-  `;
-  el.onclick = () => navigate('#/course/' + encodeURIComponent(c.path));
-  return el;
 }
 
 async function loadCourseDetail(coursePath, autoPlayVideo) {
@@ -675,7 +580,6 @@ function collectVideos(items, out) {
   }
 }
 
-// Compte récursivement les vidéos d'un dossier
 function countVideos(items) {
   let n = 0;
   for (const it of items) {
@@ -685,15 +589,12 @@ function countVideos(items) {
   return n;
 }
 
-// ============ RENDU DES LEÇONS EN ACCORDÉON ============
 function renderLessons(items, container) {
   for (const item of items) {
     if (item.type === 'folder') {
       const wrapper = document.createElement('div');
       wrapper.className = 'folder-wrapper';
-
       const count = countVideos(item.children);
-
       const header = document.createElement('div');
       header.className = 'folder-header';
       header.innerHTML = `
@@ -701,19 +602,15 @@ function renderLessons(items, container) {
         <span class="folder-name">${escapeHtml(item.name)}</span>
         <span class="folder-count">${count}</span>
       `;
-
       const children = document.createElement('div');
       children.className = 'folder-children collapsed';
-
       header.onclick = () => {
         const isOpen = header.classList.toggle('open');
         children.classList.toggle('collapsed', !isOpen);
       };
-
       wrapper.appendChild(header);
       wrapper.appendChild(children);
       container.appendChild(wrapper);
-
       renderLessons(item.children, children);
     } else {
       const el = document.createElement('div');
@@ -728,7 +625,6 @@ function renderLessons(items, container) {
   }
 }
 
-// Déplie automatiquement les dossiers parents de la vidéo active
 function expandParentFolders(videoPath) {
   const lessonEl = document.querySelector(`.lesson[data-path="${cssEscape(videoPath)}"]`);
   if (!lessonEl) return;
@@ -755,7 +651,6 @@ async function playVideo(item) {
   document.querySelectorAll('.lesson').forEach(e => e.classList.remove('active'));
   document.querySelectorAll(`.lesson[data-path="${cssEscape(videoPath)}"]`).forEach(e => e.classList.add('active'));
 
-  // Déplier les dossiers parents
   expandParentFolders(videoPath);
 
   infoText.textContent = '⏳ Chargement…';
@@ -923,11 +818,7 @@ async function markCompleted(videoPath, completed) {
   await fetch('/api/progress', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: JSON.stringify({
-      video_path: videoPath,
-      position: position,
-      duration: player.duration
-    })
+    body: JSON.stringify({ video_path: videoPath, position, duration: player.duration })
   });
 }
 
