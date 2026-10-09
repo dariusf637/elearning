@@ -514,7 +514,6 @@ const autoNextEl = document.getElementById('auto-next');
 const anCount = document.getElementById('an-count');
 const anName = document.getElementById('an-name');
 
-// === Met à jour le texte de la barre d'info + active le défilement si trop long ===
 function setInfoText(text) {
   infoText.classList.remove('scrollable');
   infoTextInner.style.animation = 'none';
@@ -930,7 +929,6 @@ function renderLessons(items, container) {
       header.onclick = () => {
         const isOpen = header.classList.toggle('open');
         children.classList.toggle('collapsed', !isOpen);
-        // Affiche le nom du module dans la barre d'info
         setInfoText('📁 ' + item.name);
       };
       wrapper.appendChild(header);
@@ -1081,6 +1079,29 @@ player.addEventListener('ended', async () => {
 });
 window.addEventListener('beforeunload', () => saveProgress(true));
 
+// ============ SAUVEGARDE PROGRESSION ============
+async function saveProgress(useBeacon = false) {
+  if (!currentVideo || !player.duration || player.currentTime < 1) return;
+  const body = JSON.stringify({
+    video_path: currentVideo,
+    position: player.currentTime,
+    duration: player.duration
+  });
+  if (useBeacon && navigator.sendBeacon) {
+    navigator.sendBeacon('/api/progress?token=' + encodeURIComponent(token),
+      new Blob([body], { type: 'application/json' }));
+    return;
+  }
+  try {
+    await fetch('/api/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body
+    });
+  } catch {}
+}
+
+// ============ DOCUMENT VIEWER ============
 function openDocument(doc) {
   cancelAutoNext();
   stopPlayer();
