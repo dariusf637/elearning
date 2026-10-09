@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS progress (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_progress_user ON progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_progress_user ON progress(user_id); 
 CREATE INDEX IF NOT EXISTS idx_progress_last_watched ON progress(user_id, last_watched DESC);
 CREATE INDEX IF NOT EXISTS idx_progress_completed ON progress(user_id, completed);
 CREATE INDEX IF NOT EXISTS idx_progress_archived ON progress(user_id, archived);
