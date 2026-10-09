@@ -68,7 +68,6 @@
   video::cue { background: rgba(0,0,0,0.75); color: #fff; font-size: 22px; line-height: 1.4; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); }
   #resume-toast { position: absolute; bottom: 20px; left: 20px; background: rgba(233,69,96,0.95); padding: 10px 16px; border-radius: 6px; font-size: 13px; display: none; z-index: 3; }
 
-  /* PDF viewer */
   #pdf-viewer { width: 100%; height: 100%; background: #2a2a3e; border: none; display: none; }
   .pdf-active #player { display: none; }
   .pdf-active #pdf-viewer { display: block; }
@@ -85,20 +84,75 @@
   .btn:hover { background: #e94560; }
   .speed-select { padding: 5px 8px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
+  /* === MODULES : plus gros, rouges, en majuscules pour bien les différencier === */
   .folder-wrapper { margin: 2px 0; }
-  .folder-header { padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 6px; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; user-select: none; transition: background 0.15s; }
+  .folder-header {
+    padding: 13px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 6px;
+    font-size: 15px;
+    color: #e94560;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 800;
+    user-select: none;
+    transition: background 0.15s, color 0.15s;
+    margin-bottom: 2px;
+  }
   .folder-header:hover { background: #16213e; color: #fff; }
-  .folder-chevron { display: inline-block; font-size: 9px; transition: transform 0.2s ease; flex-shrink: 0; width: 10px; text-align: center; }
+  .folder-chevron {
+    display: inline-block;
+    font-size: 11px;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+    width: 12px;
+    text-align: center;
+    color: #e94560;
+  }
+  .folder-header:hover .folder-chevron { color: #fff; }
   .folder-header.open .folder-chevron { transform: rotate(90deg); }
   .folder-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-  .folder-count { margin-left: auto; font-size: 10px; color: #555; font-weight: 400; background: #222; padding: 1px 6px; border-radius: 8px; flex-shrink: 0; }
+  .folder-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: #666;
+    font-weight: 700;
+    background: #222;
+    padding: 2px 8px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    letter-spacing: 0;
+  }
   .folder-header.open .folder-count { color: #4ade80; background: rgba(74,222,128,0.15); }
-  .folder-children { margin-left: 10px; border-left: 1px solid #2a2a44; padding-left: 4px; overflow: hidden; }
+  .folder-children {
+    margin-left: 14px;
+    border-left: 2px solid #2a2a44;
+    padding-left: 8px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
   .folder-children.collapsed { display: none; }
 
-  .lesson { padding: 11px 14px; cursor: pointer; font-size: 13px; border-radius: 6px; margin: 2px 0; display: flex; flex-direction: column; gap: 4px; position: relative; }
-  .lesson:hover { background: #16213e; }
-  .lesson.active { background: #e94560; }
+  /* === LEÇONS : normales, plus petites que les modules === */
+  .lesson {
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 400;
+    color: #ddd;
+    border-radius: 6px;
+    margin: 1px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    transition: background 0.15s, color 0.15s;
+  }
+  .lesson:hover { background: #16213e; color: #fff; }
+  .lesson.active { background: #e94560; color: #fff; }
   .lesson .title-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .lesson .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
   .lesson .cc-badge { font-size: 9px; background: #4ade80; color: #000; padding: 1px 5px; border-radius: 3px; font-weight: 600; flex-shrink: 0; }
@@ -107,9 +161,20 @@
   .lesson .fav-btn:hover { opacity: 1; background: rgba(255,255,255,0.1); }
   .lesson .fav-btn.active { opacity: 1; }
 
-  /* Documents */
-  .docs-separator { padding: 14px 12px 4px; font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1px; border-top: 1px solid #2a2a44; margin-top: 10px; }
-  .doc-item { padding: 11px 14px; cursor: pointer; font-size: 13px; border-radius: 6px; margin: 2px 0; display: flex; align-items: center; gap: 8px; color: #ccc; }
+  /* === DOCUMENTS : même style que les leçons (intégrés dans les modules) === */
+  .doc-item {
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 400;
+    color: #ddd;
+    border-radius: 6px;
+    margin: 1px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s, color 0.15s;
+  }
   .doc-item:hover { background: #16213e; color: #fff; }
   .doc-item.active { background: #e94560; color: #fff; }
   .doc-item .doc-icon { flex-shrink: 0; font-size: 14px; }
@@ -207,12 +272,15 @@
     .user-row { flex-direction: column; align-items: flex-start; }
     .user-row .actions { width: 100%; justify-content: flex-start; }
     #auto-next { left: 12px; right: 12px; bottom: 60px; min-width: 0; }
+    .folder-header { font-size: 13px; padding: 11px 12px; }
+    .folder-chevron { font-size: 10px; }
   }
   @media (max-width: 400px) {
     #navbar .brand { font-size: 13px; }
     #navbar .nav-links a { font-size: 11px; padding: 5px 8px; }
     .page-container h1 { font-size: 18px; }
     .course-sidebar { max-height: 50%; }
+    .folder-header { font-size: 12px; }
   }
 </style>
 </head>
@@ -526,7 +594,6 @@ async function loadFavoritesKeys() {
   } catch {}
 }
 
-// ============ RECHERCHE ============
 const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
 let searchTimeout = null;
@@ -570,7 +637,7 @@ async function doSearch(q) {
     }
     if (data.lessons.length) {
       const cat = document.createElement('div');
-      cat.className = 'sr-cat'; cat.textContent = 'Leçons';
+      cat.className = 'sr-cat'; cat.textContent = 'Leçons et documents';
       searchResults.appendChild(cat);
       data.lessons.forEach(l => {
         const el = document.createElement('div');
@@ -589,7 +656,6 @@ async function doSearch(q) {
   } catch {}
 }
 
-// ============ CARTES ============
 function renderCourseProgressCard(c, opts = {}) {
   const el = document.createElement('div');
   el.className = 'card';
@@ -633,7 +699,6 @@ function renderLessonFavoriteCard(v) {
   return el;
 }
 
-// ============ HOME ============
 async function loadHome() {
   try {
     const r = await fetch('/api/resume', { headers: { Authorization: 'Bearer ' + token } });
@@ -727,7 +792,6 @@ async function loadCoursesGrid(targetId) {
   } catch { grid.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-// ============ FAVORIS ============
 async function toggleFavorite(videoPath) {
   const isFav = favoritesSet.has(videoPath);
   try {
@@ -760,7 +824,6 @@ async function removeFavorite(videoPath) {
   loadFavoritesPage();
 }
 
-// ============ COURSE DETAIL ============
 async function loadCourseDetail(coursePath, autoPlayVideo) {
   currentCoursePath = coursePath;
   document.getElementById('course-title').textContent = coursePath.split('/').pop();
@@ -778,7 +841,6 @@ async function loadCourseDetail(coursePath, autoPlayVideo) {
       const target = currentCourseVideos.find(v => v.path === autoPlayVideo);
       if (target) playVideo(target);
       else {
-        // peut-être un document
         const findDoc = (items) => {
           for (const it of items) {
             if (it.type === 'document' && it.path === autoPlayVideo) return it;
@@ -809,11 +871,9 @@ function countVideos(items) {
   return n;
 }
 
+// === CHANGEMENT CLÉ : les docs sont rendus INLINE, dans leur module, à leur position ===
 function renderLessons(items, container) {
-  const tree = items.filter(it => it.type === 'folder' || it.type === 'video');
-  const docs = items.filter(it => it.type === 'document');
-
-  for (const item of tree) {
+  for (const item of items) {
     if (item.type === 'folder') {
       const wrapper = document.createElement('div');
       wrapper.className = 'folder-wrapper';
@@ -850,27 +910,19 @@ function renderLessons(items, container) {
       el.querySelector('.fav-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(item.path); };
       el.onclick = () => playVideo(item);
       container.appendChild(el);
-    }
-  }
-
-  if (docs.length > 0) {
-    const sep = document.createElement('div');
-    sep.className = 'docs-separator';
-    sep.textContent = '📄 Documents';
-    container.appendChild(sep);
-    docs.forEach(doc => {
+    } else if (item.type === 'document') {
       const el = document.createElement('div');
       el.className = 'doc-item';
-      el.dataset.path = doc.path;
-      el.innerHTML = `<span class="doc-icon">📄</span><span class="doc-name">${escapeHtml(doc.name)}</span>`;
-      el.onclick = () => openDocument(doc);
+      el.dataset.path = item.path;
+      el.innerHTML = `<span class="doc-icon">📄</span><span class="doc-name">${escapeHtml(item.name)}</span>`;
+      el.onclick = () => openDocument(item);
       container.appendChild(el);
-    });
+    }
   }
 }
 
 function expandParentFolders(videoPath) {
-  const lessonEl = document.querySelector(`.lesson[data-path="${cssEscape(videoPath)}"]`);
+  const lessonEl = document.querySelector(`.lesson[data-path="${cssEscape(videoPath)}"], .doc-item[data-path="${cssEscape(videoPath)}"]`);
   if (!lessonEl) return;
   let el = lessonEl.parentElement;
   while (el) {
@@ -883,10 +935,8 @@ function expandParentFolders(videoPath) {
   }
 }
 
-// ============ PLAYER ============
 async function playVideo(item) {
   cancelAutoNext();
-  // Fermer le PDF si ouvert
   document.querySelector('.player-wrap').classList.remove('pdf-active');
   document.getElementById('pdf-viewer').src = 'about:blank';
   document.getElementById('back-to-video-btn').style.display = 'none';
@@ -985,7 +1035,6 @@ player.addEventListener('ended', async () => {
 });
 window.addEventListener('beforeunload', () => saveProgress(true));
 
-// ============ DOCUMENT VIEWER ============
 function openDocument(doc) {
   cancelAutoNext();
   stopPlayer();
@@ -1024,14 +1073,12 @@ document.getElementById('back-to-video-btn').onclick = () => {
   }
 };
 
-// ============ VITESSE ============
 speedSelect.onchange = () => {
   const s = parseFloat(speedSelect.value);
   player.playbackRate = s;
   localStorage.setItem('speed', s.toString());
 };
 
-// ============ AUTO-NEXT ============
 function scheduleAutoNext() {
   const idx = currentCourseVideos.findIndex(v => v.path === currentVideo);
   if (idx < 0 || idx >= currentCourseVideos.length - 1) return;
@@ -1063,13 +1110,11 @@ document.getElementById('an-play').onclick = () => {
 };
 document.getElementById('an-cancel').onclick = () => cancelAutoNext();
 
-// ============ RACCOURCIS CLAVIER ============
 document.addEventListener('keydown', (e) => {
   const tag = (e.target.tagName || '').toLowerCase();
   if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
   const courseView = document.getElementById('view-course');
   if (!courseView.classList.contains('active')) return;
-  // Ne pas interférer si le PDF est ouvert
   if (document.querySelector('.player-wrap').classList.contains('pdf-active')) return;
 
   switch (e.key) {
@@ -1122,7 +1167,6 @@ function playPrevLesson() {
   if (idx > 0) playVideo(currentCourseVideos[idx - 1]);
 }
 
-// ============ SOUS-TITRES ============
 function formatLangLabel(lang) {
   if (lang === 'default') return 'Par défaut';
   const labels = {
@@ -1183,7 +1227,6 @@ document.addEventListener('click', (e) => {
   if (!subtitleMenu.contains(e.target) && e.target !== subtitleBtn) subtitleMenu.classList.remove('open');
 });
 
-// ============ MARQUER TERMINÉ / QUIZ ============
 function updateCompleteBtn() {
   completeBtn.textContent = currentCompleted ? '↺ Non terminé' : '✅ Marquer terminé';
   completeBtn.style.background = currentCompleted ? '#4ade80' : '';
@@ -1209,7 +1252,6 @@ async function markCompleted(videoPath, completed) {
   });
 }
 
-// ============ QUIZ ============
 const quizOverlay = document.getElementById('quiz-overlay');
 const quizBody = document.getElementById('quiz-body');
 const quizResult = document.getElementById('quiz-result');
@@ -1309,7 +1351,6 @@ quizValidate.onclick = () => {
   }
 };
 
-// ============ UTILS ============
 function formatTime(s) {
   if (!s || isNaN(s)) return '0s';
   const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = Math.floor(s%60);
@@ -1324,7 +1365,6 @@ function escapeHtml(s) {
 function escapeJs(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 function cssEscape(s) { return s.replace(/["\\]/g, '\\$&'); }
 
-// ============ ADMIN ============
 document.getElementById('create-user-btn').onclick = async () => {
   const u = document.getElementById('new-username').value.trim();
   const p = document.getElementById('new-password').value;
@@ -1399,7 +1439,6 @@ async function deleteUser(id, name) {
 
 document.getElementById('course-back').onclick = () => history.back();
 
-// ============ INIT ============
 (async () => {
   if (token) {
     await loadFavoritesKeys();
