@@ -185,6 +185,19 @@
   .lesson .fav-btn:hover { opacity: 1; background: rgba(255,255,255,0.1); }
   .lesson .fav-btn.active { opacity: 1; }
 
+  /* === INDICATEUR DE LECTURE === */
+  .vid-icon {
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    flex-shrink: 0;
+    transition: color 0.2s;
+  }
+  .vid-icon.partial { color: #f59e0b; }
+  .vid-icon.done { color: #4ade80; font-weight: 700; }
+
   .doc-item {
     padding: 9px 12px;
     cursor: pointer;
@@ -500,6 +513,9 @@ let autoNextTarget = null;
 let currentQuiz = null;
 let currentQuizAnswers = [];
 
+// Cache des progressions pour la sidebar (video_path → { position, duration, completed })
+const progressCache = new Map();
+
 const HOME_COMPLETED_LIMIT = 4;
 
 const player = document.getElementById('player');
@@ -532,6 +548,47 @@ function setInfoText(text) {
       infoText.classList.add('scrollable');
     }
   });
+}
+
+// === ICÔNES DE STATUT DE LECTURE ===
+function statusIconHTML(progress) {
+  if (!progress) return '<span class="vid-icon">▶</span>';
+  if (progress.completed) return '<span class="vid-icon done">✓</span>';
+  if (progress.position > 5) return '<span class="vid-icon partial">▶</span>';
+  return '<span class="vid-icon">▶</span>';
+}
+
+function updateLessonIcon(videoPath, progress) {
+  const el = document.querySelector(`.lesson[data-path="${cssEscape(videoPath)}"] .vid-icon`);
+  if (!el) return;
+  el.className = 'vid-icon';
+  if (progress.completed) { el.textContent = '✓'; el.classList.add('done'); }
+  else if (progress.position > 5) { el.textContent = '▶'; el.classList.add('partial'); }
+  else { el.textContent = '▶'; }
+}
+
+// Charger les progressions de toutes les vidéos d'un cours
+async function loadAllProgress(paths) {
+  const CONCURRENCY = 10;
+  let index = 0;
+  async function worker() {
+    while (index < paths.length) {
+      const i = index++;
+      const path = paths[i];
+      try {
+        const r = await fetch('/api/progress/' + encodeURIComponent(path), {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+        if (r.ok) {
+          const data = await r.json();
+          progressCache.set(path, data);
+          updateLessonIcon(path, data);
+        }
+      } catch {}
+    }
+  }
+  const workers = Array(Math.min(CONCURRENCY, paths.length)).fill().map(() => worker());
+  await Promise.all(workers);
 }
 
 function navigate(hash) { window.location.hash = hash; }
@@ -881,6 +938,11 @@ async function loadCourseDetail(coursePath, autoPlayVideo) {
     currentCourseVideos = [];
     collectVideos(items, currentCourseVideos);
     renderLessons(items, lessons);
+
+    // Charger les progressions en arrière-plan pour afficher les statuts
+    const paths = currentCourseVideos.map(v => v.path);
+    loadAllProgress(paths);
+
     if (autoPlayVideo) {
       const target = currentCourseVideos.find(v => v.path === autoPlayVideo);
       if (target) playVideo(target);
@@ -942,9 +1004,10 @@ function renderLessons(items, container) {
       const ccBadge = item.subtitles && item.subtitles.length ? `<span class="cc-badge">CC ${item.subtitles.length}</span>` : '';
       const qzBadge = item.quiz ? `<span class="quiz-badge">📝</span>` : '';
       const isFav = favoritesSet.has(item.path);
+      const prog = progressCache.get(item.path);
       el.innerHTML = `
         <div class="title-row">
-          <span class="name">▶ ${escapeHtml(item.name)}</span>
+          <span class="name">${statusIconHTML(prog)} ${escapeHtml(item.name)}</span>
           <span style="display:flex;gap:4px;align-items:center;">
             ${ccBadge}${qzBadge}
             <span class="fav-btn ${isFav ? 'active' : ''}" title="Favori">${isFav ? '⭐' : '☆'}</span>
@@ -1004,10 +1067,12 @@ async function playVideo(item) {
   subtitleBtn.style.display = 'none';
   subtitleMenu.classList.remove('open');
 
-  let progress = { position: 0, duration: 0, completed: 0 };
+  let progress = progressCache.get(videoPath) || { position: 0, duration: 0, completed: 0 };
   try {
     const r = await fetch('/api/progress/' + encodeURIComponent(videoPath), { headers: { Authorization: 'Bearer ' + token } });
     progress = await r.json();
+    progressCache.set(videoPath, progress);
+    updateLessonIcon(videoPath, progress);
   } catch {}
   currentCompleted = !!progress.completed;
 
@@ -1082,6 +1147,15 @@ window.addEventListener('beforeunload', () => saveProgress(true));
 // ============ SAUVEGARDE PROGRESSION ============
 async function saveProgress(useBeacon = false) {
   if (!currentVideo || !player.duration || player.currentTime < 1) return;
+
+  // Mise à jour locale du cache + icône
+  const cached = progressCache.get(currentVideo) || { position: 0, duration: 0, completed: 0 };
+  cached.position = player.currentTime;
+  cached.duration = player.duration;
+  if (player.duration > 0 && player.currentTime / player.duration >= 0.95) cached.completed = 1;
+  progressCache.set(currentVideo, cached);
+  updateLessonIcon(currentVideo, cached);
+
   const body = JSON.stringify({
     video_path: currentVideo,
     position: player.currentTime,
@@ -1312,6 +1386,14 @@ function updateCompleteBtn() {
 async function markCompleted(videoPath, completed) {
   if (!player.duration) return;
   const position = completed ? player.duration : 0;
+  // Mise à jour locale du cache + icône
+  const cached = progressCache.get(videoPath) || { position: 0, duration: 0, completed: 0 };
+  cached.position = position;
+  cached.duration = player.duration;
+  cached.completed = completed ? 1 : 0;
+  progressCache.set(videoPath, cached);
+  updateLessonIcon(videoPath, cached);
+
   await fetch('/api/progress', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
