@@ -78,13 +78,38 @@
   #auto-next .an-actions { display: flex; gap: 8px; }
 
   .player-info { padding: 10px 16px; background: #1a1a2e; font-size: 13px; color: #aaa; display: flex; justify-content: space-between; align-items: center; gap: 10px; position: relative; flex-wrap: wrap; }
-  .player-info .info-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 150px; }
+  .player-info .info-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 150px;
+    cursor: default;
+    padding-right: 8px;
+  }
+  .player-info .info-text #info-text-inner {
+    display: inline-block;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+  }
+  .player-info .info-text.scrollable:hover #info-text-inner {
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    animation: info-scroll var(--scroll-dur, 8s) ease-in-out infinite alternate;
+  }
+  @keyframes info-scroll {
+    0%, 15% { transform: translateX(0); }
+    85%, 100% { transform: translateX(var(--scroll-distance, -100%)); }
+  }
   .player-info .info-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
   .btn { padding: 6px 12px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap; }
   .btn:hover { background: #e94560; }
   .speed-select { padding: 5px 8px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
-  /* === MODULES : plus gros, rouges, en majuscules pour bien les différencier === */
   .folder-wrapper { margin: 2px 0; }
   .folder-header {
     padding: 13px 14px;
@@ -136,7 +161,6 @@
   }
   .folder-children.collapsed { display: none; }
 
-  /* === LEÇONS : normales, plus petites que les modules === */
   .lesson {
     padding: 9px 12px;
     cursor: pointer;
@@ -161,7 +185,6 @@
   .lesson .fav-btn:hover { opacity: 1; background: rgba(255,255,255,0.1); }
   .lesson .fav-btn.active { opacity: 1; }
 
-  /* === DOCUMENTS : même style que les leçons (intégrés dans les modules) === */
   .doc-item {
     padding: 9px 12px;
     cursor: pointer;
@@ -262,7 +285,7 @@
     .course-sidebar .course-header h2 { font-size: 12px; }
     .player-wrap { min-height: 180px; }
     .player-info { flex-direction: column; align-items: stretch; padding: 8px 12px; gap: 6px; }
-    .player-info .info-text { font-size: 12px; white-space: normal; overflow: visible; text-overflow: clip; }
+    .player-info .info-text { font-size: 12px; }
     .btn { font-size: 11px; padding: 5px 10px; }
     #subtitle-menu { right: 8px; left: 8px; min-width: 0; max-height: 50vh; }
     .login-box { padding: 24px 20px; }
@@ -388,7 +411,7 @@
           </div>
         </div>
         <div class="player-info">
-          <span class="info-text" id="info-text">Sélectionnez une leçon</span>
+          <span class="info-text" id="info-text"><span id="info-text-inner">Sélectionnez une leçon</span></span>
           <div class="info-actions">
             <button class="btn" id="back-to-video-btn" style="display:none;">▶ Retour à la vidéo</button>
             <select class="speed-select" id="speed-select" title="Vitesse">
@@ -485,10 +508,32 @@ const subtitleMenu = document.getElementById('subtitle-menu');
 const completeBtn = document.getElementById('complete-btn');
 const speedSelect = document.getElementById('speed-select');
 const infoText = document.getElementById('info-text');
+const infoTextInner = document.getElementById('info-text-inner');
 const resumeToast = document.getElementById('resume-toast');
 const autoNextEl = document.getElementById('auto-next');
 const anCount = document.getElementById('an-count');
 const anName = document.getElementById('an-name');
+
+// === Met à jour le texte de la barre d'info + active le défilement si trop long ===
+function setInfoText(text) {
+  infoText.classList.remove('scrollable');
+  infoTextInner.style.animation = 'none';
+  infoTextInner.style.transform = '';
+  infoTextInner.style.removeProperty('--scroll-distance');
+  infoText.style.removeProperty('--scroll-dur');
+  infoTextInner.textContent = text;
+  requestAnimationFrame(() => {
+    const outerWidth = infoText.clientWidth;
+    const innerWidth = infoTextInner.scrollWidth;
+    if (innerWidth > outerWidth + 4) {
+      const distance = innerWidth - outerWidth + 20;
+      infoText.style.setProperty('--scroll-distance', `-${distance}px`);
+      const dur = Math.max(4, Math.round(distance / 25));
+      infoText.style.setProperty('--scroll-dur', `${dur}s`);
+      infoText.classList.add('scrollable');
+    }
+  });
+}
 
 function navigate(hash) { window.location.hash = hash; }
 
@@ -871,7 +916,6 @@ function countVideos(items) {
   return n;
 }
 
-// === CHANGEMENT CLÉ : les docs sont rendus INLINE, dans leur module, à leur position ===
 function renderLessons(items, container) {
   for (const item of items) {
     if (item.type === 'folder') {
@@ -886,6 +930,8 @@ function renderLessons(items, container) {
       header.onclick = () => {
         const isOpen = header.classList.toggle('open');
         children.classList.toggle('collapsed', !isOpen);
+        // Affiche le nom du module dans la barre d'info
+        setInfoText('📁 ' + item.name);
       };
       wrapper.appendChild(header);
       wrapper.appendChild(children);
@@ -954,7 +1000,7 @@ async function playVideo(item) {
   document.querySelectorAll(`.lesson[data-path="${cssEscape(videoPath)}"]`).forEach(e => e.classList.add('active'));
   expandParentFolders(videoPath);
 
-  infoText.textContent = '⏳ Chargement…';
+  setInfoText('⏳ Chargement…');
   resumeToast.style.display = 'none';
   completeBtn.style.display = 'none';
   subtitleBtn.style.display = 'none';
@@ -993,7 +1039,7 @@ async function playVideo(item) {
       resumeToast.style.display = 'block';
       setTimeout(() => resumeToast.style.display = 'none', 3000);
     }
-    infoText.textContent = displayName + ' — ' + formatTime(player.duration);
+    setInfoText(displayName + ' — ' + formatTime(player.duration));
     completeBtn.style.display = 'inline-block';
     updateCompleteBtn();
 
@@ -1011,7 +1057,7 @@ async function playVideo(item) {
     }
   };
 
-  player.onerror = () => { infoText.textContent = '❌ Erreur de lecture : ' + displayName; };
+  player.onerror = () => { setInfoText('❌ Erreur de lecture : ' + displayName); };
   player.play().catch(() => {});
 
   if (saveTimer) clearInterval(saveTimer);
@@ -1050,7 +1096,7 @@ function openDocument(doc) {
   pdfViewer.src = '/api/document/' + encodeURIComponent(doc.path) + '?token=' + encodeURIComponent(token);
   backBtn.style.display = 'inline-block';
 
-  infoText.textContent = '📄 ' + doc.name;
+  setInfoText('📄 ' + doc.name);
   document.getElementById('speed-select').style.display = 'none';
   document.getElementById('complete-btn').style.display = 'none';
   document.getElementById('subtitle-btn').style.display = 'none';
@@ -1065,11 +1111,11 @@ document.getElementById('back-to-video-btn').onclick = () => {
   document.getElementById('speed-select').style.display = '';
   document.querySelectorAll('.doc-item').forEach(e => e.classList.remove('active'));
   if (currentVideo) {
-    infoText.textContent = currentVideo.split('/').pop();
+    setInfoText(currentVideo.split('/').pop());
     document.getElementById('complete-btn').style.display = 'inline-block';
     if (currentSubtitles.length > 0) document.getElementById('subtitle-btn').style.display = 'inline-block';
   } else {
-    infoText.textContent = 'Sélectionnez une leçon';
+    setInfoText('Sélectionnez une leçon');
   }
 };
 
